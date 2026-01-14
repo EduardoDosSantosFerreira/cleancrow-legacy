@@ -1,1 +1,1 @@
-pyinstaller --onefile --noconsole --clean --name cleancrow --icon crowico.ico --upx-dir "C:\Users\CALLCENTER\Downloads\upx-5.0.1-win64" main.py
+pyinstaller --onefile --noconsole --clean --name cleancrow --icon crowico.ico --upx-dir "B:\WorkStation\cleancrow\upx-5.1.0-win64\upx-5.1.0-win64" main.py
