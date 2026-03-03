@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QFrame,
     QTextEdit,
-    QScrollArea,
     QSplitter,
 )
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSize, QTimer
@@ -21,7 +20,7 @@ from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat
 import os
 import sys
 import time
-import subprocess  # ADICIONADO AQUI
+import subprocess
 
 # Adicione esta linha para importar sua classe de limpeza
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -181,8 +180,9 @@ class CleanCrowUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CleanCrow - Otimizador de Sistema")
-        self.setMinimumSize(900, 800)
-        self.setMaximumSize(1200, 1000)
+        # Reduzindo o tamanho mínimo da janela
+        self.setMinimumSize(800, 600)
+        self.setMaximumSize(1100, 900)
 
         # Definir ícone da janela
         icone_janela = self.obter_caminho_icone("crowico.png")
@@ -241,9 +241,10 @@ class CleanCrowUI(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
+        # Reduzindo as margens e espaçamentos
         self.main_layout = QVBoxLayout()
-        self.main_layout.setContentsMargins(20, 20, 20, 20)
-        self.main_layout.setSpacing(15)
+        self.main_layout.setContentsMargins(15, 15, 15, 15)
+        self.main_layout.setSpacing(10)
         self.central_widget.setLayout(self.main_layout)
 
         # Cabeçalho
@@ -256,10 +257,8 @@ class CleanCrowUI(QMainWindow):
         # Painel superior - Controles
         top_panel = QWidget()
         top_layout = QVBoxLayout(top_panel)
-        top_layout.setSpacing(15)
-        
-        # Painel de status atual
-        self.setup_current_status_panel(top_layout)
+        top_layout.setSpacing(10)
+        top_layout.setContentsMargins(0, 0, 0, 0)
         
         # Botões de ação
         self.setup_action_buttons(top_layout)
@@ -272,11 +271,13 @@ class CleanCrowUI(QMainWindow):
         # Painel inferior - Logs
         bottom_panel = QWidget()
         bottom_layout = QVBoxLayout(bottom_panel)
+        bottom_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_layout.setSpacing(5)
         
         # Título da área de logs
         log_title = QLabel("📝 Log de Operações")
         log_title.setStyleSheet("""
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #3498db;
             padding: 5px;
@@ -285,16 +286,16 @@ class CleanCrowUI(QMainWindow):
         """)
         bottom_layout.addWidget(log_title)
         
-        # Área de logs
+        # Área de logs - reduzindo altura máxima
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
-        self.log_text.setMaximumHeight(250)
+        self.log_text.setMaximumHeight(200)
         bottom_layout.addWidget(self.log_text)
         
         splitter.addWidget(bottom_panel)
         
         # Definir proporções iniciais
-        splitter.setSizes([500, 250])
+        splitter.setSizes([400, 200])
 
         self.worker_thread = None
 
@@ -302,43 +303,35 @@ class CleanCrowUI(QMainWindow):
         header_widget = QWidget()
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(10)
 
         # Logo
         logo_path = self.obter_caminho_icone("crowico.png")
         if logo_path:
             logo_label = QLabel()
-            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(64, 64)))
+            # Reduzindo tamanho do logo
+            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(48, 48)))
             header_layout.addWidget(logo_label)
 
-        # Título e subtítulo
-        title_container = QVBoxLayout()
+        # Título (sem subtítulo)
         title_label = QLabel("CLEANCROW")
         title_label.setStyleSheet("""
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
             color: #e74c3c;
             padding: 0;
         """)
         
-        subtitle_label = QLabel("Otimizador de Sistema Avançado")
-        subtitle_label.setStyleSheet("""
-            font-size: 14px;
-            color: #95a5a6;
-            padding: 0;
-        """)
-        
-        title_container.addWidget(title_label)
-        title_container.addWidget(subtitle_label)
-        header_layout.addLayout(title_container)
+        header_layout.addWidget(title_label)
         header_layout.addStretch()
 
         # Indicador de status
         self.status_indicator = QLabel("🟢 Pronto")
         self.status_indicator.setStyleSheet("""
-            font-size: 12px;
-            padding: 5px 10px;
+            font-size: 11px;
+            padding: 4px 8px;
             background-color: #27ae60;
-            border-radius: 10px;
+            border-radius: 8px;
             color: white;
             font-weight: bold;
         """)
@@ -346,53 +339,11 @@ class CleanCrowUI(QMainWindow):
 
         self.main_layout.addWidget(header_widget)
 
-    def setup_current_status_panel(self, layout):
-        status_frame = QFrame()
-        status_frame.setStyleSheet("""
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            border: 1px solid #333333;
-            padding: 15px;
-        """)
-        status_layout = QVBoxLayout(status_frame)
-        
-        status_title = QLabel("📊 Status da Operação")
-        status_title.setStyleSheet("""
-            font-size: 16px;
-            font-weight: bold;
-            color: #ecf0f1;
-            padding-bottom: 10px;
-        """)
-        status_layout.addWidget(status_title)
-        
-        # Label da operação atual
-        self.current_operation_label = QLabel("Nenhuma operação em andamento")
-        self.current_operation_label.setStyleSheet("""
-            font-size: 14px;
-            color: #3498db;
-            padding: 8px;
-            background-color: #222222;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-        """)
-        self.current_operation_label.setWordWrap(True)
-        status_layout.addWidget(self.current_operation_label)
-        
-        # Contador de arquivos/operações (simulado)
-        self.operations_counter = QLabel("Operações concluídas: 0/34")
-        self.operations_counter.setStyleSheet("""
-            font-size: 12px;
-            color: #95a5a6;
-            padding: 5px;
-        """)
-        status_layout.addWidget(self.operations_counter)
-        
-        layout.addWidget(status_frame)
-
     def setup_action_buttons(self, layout):
         button_container = QWidget()
         button_layout = QHBoxLayout(button_container)
-        button_layout.setSpacing(20)
+        button_layout.setSpacing(15)
+        button_layout.setContentsMargins(0, 0, 0, 0)
         
         # Botão Limpar
         self.limpar_button = self.create_action_button(
@@ -432,7 +383,7 @@ class CleanCrowUI(QMainWindow):
         icon_path = self.obter_caminho_icone(icon_name)
         if icon_path:
             button.setIcon(QIcon(icon_path))
-            button.setIconSize(QSize(24, 24))
+            button.setIconSize(QSize(20, 20))
         
         button.setStyleSheet(f"""
             QPushButton {{
@@ -440,22 +391,17 @@ class CleanCrowUI(QMainWindow):
                 color: white;
                 font-weight: bold;
                 border: none;
-                padding: 12px 20px;
-                border-radius: 6px;
-                font-size: 14px;
-                min-width: 180px;
+                padding: 10px 16px;
+                border-radius: 5px;
+                font-size: 13px;
+                min-width: 160px;
             }}
             QPushButton:hover {{
                 background-color: {hover_color};
-                transform: scale(1.02);
             }}
             QPushButton:disabled {{
                 background-color: #5d6d7e;
                 color: #bdc3c7;
-            }}
-            QPushButton:pressed {{
-                background-color: {hover_color};
-                padding: 11px 19px;
             }}
         """)
         
@@ -466,33 +412,52 @@ class CleanCrowUI(QMainWindow):
         progress_frame = QFrame()
         progress_frame.setStyleSheet("""
             background-color: #1a1a1a;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #333333;
-            padding: 15px;
+            padding: 12px;
         """)
         progress_layout = QVBoxLayout(progress_frame)
+        progress_layout.setSpacing(8)
         
         # Informações de progresso
         progress_info = QHBoxLayout()
+        progress_info.setSpacing(10)
         
         self.progress_label = QLabel("Aguardando início da operação")
         self.progress_label.setStyleSheet("""
-            font-size: 14px;
+            font-size: 13px;
             color: #ecf0f1;
             font-weight: bold;
         """)
         
+        # Container para porcentagem e contador de operações
+        status_container = QHBoxLayout()
+        status_container.setSpacing(10)
+        
         self.progress_percent = QLabel("0%")
         self.progress_percent.setStyleSheet("""
-            font-size: 18px;
+            font-size: 16px;
             color: #3498db;
             font-weight: bold;
-            min-width: 50px;
+            min-width: 45px;
         """)
+        
+        self.operations_counter = QLabel("0/34")
+        self.operations_counter.setStyleSheet("""
+            font-size: 13px;
+            color: #95a5a6;
+            font-weight: bold;
+            padding: 2px 8px;
+            background-color: #222222;
+            border-radius: 8px;
+        """)
+        
+        status_container.addWidget(self.progress_percent)
+        status_container.addWidget(self.operations_counter)
         
         progress_info.addWidget(self.progress_label)
         progress_info.addStretch()
-        progress_info.addWidget(self.progress_percent)
+        progress_info.addLayout(status_container)
         
         progress_layout.addLayout(progress_info)
         
@@ -503,27 +468,17 @@ class CleanCrowUI(QMainWindow):
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 border: 2px solid #333333;
-                border-radius: 6px;
-                height: 20px;
+                border-radius: 5px;
+                height: 18px;
                 background-color: #222222;
             }
             QProgressBar::chunk {
                 background-color: #e74c3c;
-                border-radius: 4px;
+                border-radius: 3px;
                 border: 1px solid #c0392b;
             }
         """)
         progress_layout.addWidget(self.progress_bar)
-        
-        # Barra de etapas
-        self.stages_bar = QLabel()
-        self.stages_bar.setStyleSheet("""
-            background-color: #222222;
-            border-radius: 4px;
-            padding: 2px;
-        """)
-        self.stages_bar.setMinimumHeight(8)
-        progress_layout.addWidget(self.stages_bar)
         
         layout.addWidget(progress_frame)
 
@@ -561,24 +516,6 @@ class CleanCrowUI(QMainWindow):
         self.log_text.setTextCursor(cursor)
         self.log_text.ensureCursorVisible()
 
-    def update_stages_bar(self, progress):
-        # Cria uma representação visual das etapas
-        stages = 34  # Total de operações
-        completed = int(progress / 100 * stages)
-        
-        html = "<div style='display: flex; gap: 2px;'>"
-        for i in range(stages):
-            if i < completed:
-                color = "#27ae60"  # Verde para concluído
-            elif i == completed:
-                color = "#f39c12"  # Amarelo para atual
-            else:
-                color = "#34495e"  # Cinza para pendente
-            html += f"<div style='flex: 1; height: 6px; background-color: {color}; border-radius: 2px;'></div>"
-        html += "</div>"
-        
-        self.stages_bar.setText(html)
-
     def iniciar_limpeza(self):
         self.limpar_button.setEnabled(False)
         self.atualizar_button.setEnabled(False)
@@ -586,18 +523,18 @@ class CleanCrowUI(QMainWindow):
         
         self.progress_bar.setValue(0)
         self.progress_percent.setText("0%")
+        self.operations_counter.setText("0/34")
         self.status_indicator.setText("🟡 Executando")
         self.status_indicator.setStyleSheet("""
-            font-size: 12px;
-            padding: 5px 10px;
+            font-size: 11px;
+            padding: 4px 8px;
             background-color: #f39c12;
-            border-radius: 10px;
+            border-radius: 8px;
             color: white;
             font-weight: bold;
         """)
         
-        self.current_operation_label.setText("Preparando sistema para limpeza...")
-        self.operations_counter.setText("Operações concluídas: 0/34")
+        self.progress_label.setText("Preparando sistema para limpeza...")
         
         # Limpar logs anteriores
         self.log_text.clear()
@@ -608,13 +545,13 @@ class CleanCrowUI(QMainWindow):
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 border: 2px solid #333333;
-                border-radius: 6px;
-                height: 20px;
+                border-radius: 5px;
+                height: 18px;
                 background-color: #222222;
             }
             QProgressBar::chunk {
                 background-color: #e74c3c;
-                border-radius: 4px;
+                border-radius: 3px;
                 border: 1px solid #c0392b;
             }
         """)
@@ -634,17 +571,16 @@ class CleanCrowUI(QMainWindow):
         self.progress_bar.setValue(0)
         self.progress_label.setText("Iniciando atualização do sistema...")
         self.progress_percent.setText("0%")
+        self.operations_counter.setText("0%")
         self.status_indicator.setText("🟡 Executando")
         self.status_indicator.setStyleSheet("""
-            font-size: 12px;
-            padding: 5px 10px;
+            font-size: 11px;
+            padding: 4px 8px;
             background-color: #f39c12;
-            border-radius: 10px;
+            border-radius: 8px;
             color: white;
             font-weight: bold;
         """)
-        
-        self.current_operation_label.setText("Buscando atualizações disponíveis...")
         
         # Limpar logs anteriores
         self.log_text.clear()
@@ -654,13 +590,13 @@ class CleanCrowUI(QMainWindow):
         self.progress_bar.setStyleSheet("""
             QProgressBar {
                 border: 2px solid #333333;
-                border-radius: 6px;
-                height: 20px;
+                border-radius: 5px;
+                height: 18px;
                 background-color: #222222;
             }
             QProgressBar::chunk {
                 background-color: #3498db;
-                border-radius: 4px;
+                border-radius: 3px;
                 border: 1px solid #2980b9;
             }
         """)
@@ -676,38 +612,35 @@ class CleanCrowUI(QMainWindow):
         self.progress_bar.setValue(valor)
         self.progress_percent.setText(f"{valor}%")
         
-        # Atualizar contador de operações (aproximado)
+        # Atualizar contador de operações
         if self.worker_thread and self.worker_thread.operation == "limpeza":
             completed = int(valor / 100 * 34)
-            self.operations_counter.setText(f"Operações concluídas: {completed}/34")
+            self.operations_counter.setText(f"{completed}/34")
         elif self.worker_thread and self.worker_thread.operation == "atualizacao":
-            # Para atualização, mostramos apenas o percentual
-            self.operations_counter.setText(f"Progresso: {valor}%")
-        
-        # Atualizar barra de etapas
-        self.update_stages_bar(valor)
+            self.operations_counter.setText(f"{valor}%")
 
     def atualizar_operacao_atual(self, operacao):
-        self.current_operation_label.setText(operacao)
-        # Atualizar também a label de progresso
         self.progress_label.setText(f"Executando: {operacao}")
 
     def operacao_concluida(self, success, message):
         if success:
             self.status_indicator.setText("🟢 Concluído")
             self.status_indicator.setStyleSheet("""
-                font-size: 12px;
-                padding: 5px 10px;
+                font-size: 11px;
+                padding: 4px 8px;
                 background-color: #27ae60;
-                border-radius: 10px;
+                border-radius: 8px;
                 color: white;
                 font-weight: bold;
             """)
             
             self.progress_bar.setValue(100)
             self.progress_percent.setText("100%")
+            if self.worker_thread and self.worker_thread.operation == "limpeza":
+                self.operations_counter.setText("34/34")
+            else:
+                self.operations_counter.setText("100%")
             self.progress_label.setText("Operação concluída com sucesso!")
-            self.current_operation_label.setText(message)
             
             self.add_log_message("✅ " + message, "success")
             
@@ -718,29 +651,28 @@ class CleanCrowUI(QMainWindow):
             self.progress_bar.setStyleSheet("""
                 QProgressBar {
                     border: 2px solid #333333;
-                    border-radius: 6px;
-                    height: 20px;
+                    border-radius: 5px;
+                    height: 18px;
                     background-color: #222222;
                 }
                 QProgressBar::chunk {
                     background-color: #27ae60;
-                    border-radius: 4px;
+                    border-radius: 3px;
                     border: 1px solid #229954;
                 }
             """)
         else:
             self.status_indicator.setText("🔴 Erro")
             self.status_indicator.setStyleSheet("""
-                font-size: 12px;
-                padding: 5px 10px;
+                font-size: 11px;
+                padding: 4px 8px;
                 background-color: #e74c3c;
-                border-radius: 10px;
+                border-radius: 8px;
                 color: white;
                 font-weight: bold;
             """)
             
             self.progress_label.setText("Operação falhou!")
-            self.current_operation_label.setText("Erro durante a operação")
             
             self.add_log_message("❌ " + message, "error")
             
@@ -768,7 +700,7 @@ class CleanCrowUI(QMainWindow):
             QPushButton {
                 background-color: #3498db;
                 color: white;
-                padding: 8px 16px;
+                padding: 6px 14px;
                 border-radius: 4px;
                 font-weight: bold;
             }
