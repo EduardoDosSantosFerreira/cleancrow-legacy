@@ -310,7 +310,7 @@ class CleanCrowUI(QMainWindow):
         if logo_path:
             logo_label = QLabel()
             # Reduzindo tamanho do logo
-            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(48, 48)))
+            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(100, 100)))
             header_layout.addWidget(logo_label)
 
         # Título (sem subtítulo)

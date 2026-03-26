@@ -1,1 +1,4 @@
-pyinstaller --onefile --noconsole --clean --name cleancrow --icon crowico.ico --upx-dir "B:\WorkStation\cleancrow\upx-5.1.0-win64\upx-5.1.0-win64" main.py
+pyinstaller --onefile --noconsole --clean --name cleancrow --icon crowico.png --upx-dir "B:\WorkStation\cleancrow\upx-5.1.0-win64\upx-5.1.0-win64" main.py
+
+com geração de imagem persistente:
+pyinstaller --onefile --windowed --name cleancrow --add-data "crowico.png;." --icon=crowico.png main.py
