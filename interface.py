@@ -73,6 +73,11 @@ class WorkerThread(QThread):
             "limpar_cache_loja_windows": "Resetando cache da Microsoft Store...",
             "remover_bloatware": "Removendo bloatware...",
             "fechar_microsoft_store": "Fechando Microsoft Store...",
+            "limpar_cache_windows_update": "Limpando cache de atualizações do Windows...",
+            "limpar_defender_antivirus": "Limpando arquivos do Microsoft Defender...",
+            "limpar_arquivos_otimizacao": "Limpando arquivos de otimização de entrega...",
+            "limpar_temp_internet": "Limpando arquivos temporários da internet...",
+            "limpar_arquivos_windows": "Limpando arquivos extras do Windows...",
         }
 
     def run(self):
@@ -130,7 +135,12 @@ class WorkerThread(QThread):
             "reiniciar_servicos_essenciais": 81,
             "limpar_cache_loja_windows": 84,
             "remover_bloatware": 87,
-            "fechar_microsoft_store": 100,
+            "fechar_microsoft_store": 90,
+            "limpar_cache_windows_update": 93,
+            "limpar_defender_antivirus": 95,
+            "limpar_arquivos_otimizacao": 97,
+            "limpar_temp_internet": 98,
+            "limpar_arquivos_windows": 100,
         }
         return progress_map.get(operation_name, 0)
 
@@ -180,7 +190,6 @@ class CleanCrowUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CleanCrow - Otimizador de Sistema")
-        # Reduzindo o tamanho mínimo da janela
         self.setMinimumSize(800, 600)
         self.setMaximumSize(1100, 900)
 
@@ -309,11 +318,10 @@ class CleanCrowUI(QMainWindow):
         logo_path = self.obter_caminho_icone("crowico.png")
         if logo_path:
             logo_label = QLabel()
-            # Reduzindo tamanho do logo
             logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(100, 100)))
             header_layout.addWidget(logo_label)
 
-        # Título (sem subtítulo)
+        # Título
         title_label = QLabel("CLEANCROW")
         title_label.setStyleSheet("""
             font-size: 28px;
@@ -442,7 +450,7 @@ class CleanCrowUI(QMainWindow):
             min-width: 45px;
         """)
         
-        self.operations_counter = QLabel("0/34")
+        self.operations_counter = QLabel("0/45")
         self.operations_counter.setStyleSheet("""
             font-size: 13px;
             color: #95a5a6;
@@ -487,11 +495,11 @@ class CleanCrowUI(QMainWindow):
         
         # Define cores baseadas no tipo de mensagem
         colors = {
-            "info": "#3498db",      # Azul
-            "success": "#27ae60",   # Verde
-            "warning": "#f39c12",   # Amarelo
-            "error": "#e74c3c",     # Vermelho
-            "system": "#9b59b6",    # Roxo
+            "info": "#3498db",
+            "success": "#27ae60",
+            "warning": "#f39c12",
+            "error": "#e74c3c",
+            "system": "#9b59b6",
         }
         
         color = colors.get(msg_type, "#ffffff")
@@ -523,7 +531,7 @@ class CleanCrowUI(QMainWindow):
         
         self.progress_bar.setValue(0)
         self.progress_percent.setText("0%")
-        self.operations_counter.setText("0/34")
+        self.operations_counter.setText("0/45")
         self.status_indicator.setText("🟡 Executando")
         self.status_indicator.setStyleSheet("""
             font-size: 11px;
@@ -614,8 +622,8 @@ class CleanCrowUI(QMainWindow):
         
         # Atualizar contador de operações
         if self.worker_thread and self.worker_thread.operation == "limpeza":
-            completed = int(valor / 100 * 34)
-            self.operations_counter.setText(f"{completed}/34")
+            completed = int(valor / 100 * 45)
+            self.operations_counter.setText(f"{completed}/45")
         elif self.worker_thread and self.worker_thread.operation == "atualizacao":
             self.operations_counter.setText(f"{valor}%")
 
@@ -637,7 +645,7 @@ class CleanCrowUI(QMainWindow):
             self.progress_bar.setValue(100)
             self.progress_percent.setText("100%")
             if self.worker_thread and self.worker_thread.operation == "limpeza":
-                self.operations_counter.setText("34/34")
+                self.operations_counter.setText("45/45")
             else:
                 self.operations_counter.setText("100%")
             self.progress_label.setText("Operação concluída com sucesso!")
