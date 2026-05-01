@@ -1,53 +1,185 @@
-# CleanCrow - Otimizador e Atualizador de Sistema para Windows
+# 🐦‍⬛ CleanCrow (Legacy)
 
-CleanCrow é um software desenvolvido em Python com interface gráfica moderna baseada em PyQt5, projetado para facilitar a limpeza, otimização e atualização do sistema operacional Windows de forma simples, visual e eficiente.
+CleanCrow é uma aplicação desktop para **manutenção, limpeza e otimização de sistemas Windows**, desenvolvida em Python com interface gráfica em PyQt5.
 
-## Principais Funcionalidades
-
-- **Limpeza Completa do Sistema:**  
-  Remove arquivos temporários (%TEMP%, C:\Windows\Temp, C:\Windows\Prefetch), limpa logs do Windows, cache DNS, arquivos de atualização antigos, miniaturas, dumps de memória, relatórios de erros, cache da loja do Windows, entre outros resíduos que ocupam espaço e podem afetar o desempenho.
-
-- **Limpeza de Navegadores:**  
-  Limpa cache, cookies e dados de navegação dos principais navegadores, incluindo Google Chrome, Mozilla Firefox, Opera, Brave, Vivaldi, Safari, Tor, Maxthon, Waterfox e Pale Moon.
-
-- **Remoção de Programas e Bloatware:**  
-  Remove utilitários desnecessários (como FlashUtil*.exe) e bloatwares comuns do Windows, liberando recursos e melhorando a inicialização.
-
-- **Otimização de Disco e Sistema:**  
-  Executa limpeza de disco (cleanmgr), verifica e agenda correção de erros no disco (chkdsk), desfragmenta o disco (defrag), limpa componentes de sistema (DISM), compacta arquivos do sistema, desativa hibernação e inicialização automática de programas indesejados.
-
-- **Ajustes de Desligamento:**  
-  Otimiza o tempo de desligamento do Windows ajustando parâmetros no registro para encerramento mais rápido de aplicativos e serviços.
-
-- **Atualização de Pacotes:**  
-  Atualiza todos os programas instalados via Windows Package Manager (winget) com um clique, mantendo o sistema sempre atualizado e seguro.
-
-## Como Usar
-
-- **Limpeza do Sistema:**  
-  Clique no botão **"LIMPAR SISTEMA"** para iniciar todas as operações de limpeza e otimização. O progresso é exibido em tempo real na barra de progresso e no status.
-
-- **Atualização do Sistema:**  
-  Clique no botão **"ATUALIZAR SISTEMA"** para atualizar todos os pacotes instalados via winget. O status da operação será exibido na interface.
-
-- **Interface Moderna:**  
-  A interface é intuitiva, com botões grandes, ícones e feedback visual para cada etapa. Mensagens de sucesso ou erro são exibidas ao final de cada operação.
-
-## Requisitos e Observações
-
-- **Permissões de Administrador:**  
-  Execute o CleanCrow como administrador para garantir que todas as operações sejam realizadas corretamente.
-
-- **Compatibilidade:**  
-  Compatível apenas com Windows (requer Python 3.x, PyQt5 e winget instalado para atualização de pacotes).
-
-- **Feedback de Erros:**  
-  Caso ocorra algum erro durante as operações, uma mensagem detalhada será exibida para auxiliar na resolução.
-
-## Licença
-
-Este software é licenciado sob a GNU GPL v3.0. Consulte o arquivo LICENSE para mais informações.
+O software automatiza tarefas comuns de manutenção, removendo arquivos desnecessários, executando rotinas de limpeza e auxiliando no gerenciamento de pacotes instalados no sistema.
 
 ---
 
-Mantenha seu Windows limpo, otimizado e atualizado com praticidade e segurança usando o CleanCrow!
+## ⚙️ Funcionalidades
+
+* 🧹 **Limpeza de arquivos temporários**
+
+  * Diretórios de `%TEMP%`
+  * Cache do sistema
+  * Arquivos residuais comuns
+
+* 🗑️ **Remoção de arquivos desnecessários**
+
+  * Arquivos de log antigos
+  * Resíduos de aplicações
+
+* ⚡ **Otimizações básicas do sistema**
+
+  * Execução de comandos nativos do Windows
+  * Limpeza de componentes acumulados
+
+* 📦 **Integração com winget**
+
+  * Instalação e atualização de pacotes
+  * Automação de comandos via CLI
+
+* 📊 **Execução com feedback em tempo real**
+
+  * Barra de progresso
+  * Logs detalhados por operação
+
+* 🔐 **Elevação de privilégios automática**
+
+  * Execução como administrador quando necessário
+
+---
+
+## 🏗️ Arquitetura do Projeto
+
+O projeto segue uma separação simples entre interface e lógica:
+
+* **Camada de Interface (`interface.py`)**
+
+  * Construída com PyQt5
+  * Responsável pela interação com o usuário
+  * Atualização de logs e progresso
+
+* **Camada de Lógica (`limpeza_sistema.py`)**
+
+  * Execução das rotinas de limpeza
+  * Chamadas ao sistema operacional
+  * Manipulação de arquivos e diretórios
+
+* **Ponto de Entrada (`main.py`)**
+
+  * Inicialização da aplicação
+  * Controle de execução e permissões
+
+---
+
+## 📁 Estrutura de Diretórios
+
+```id="c8o1sl"
+cleancrow-legacy/
+│
+├── main.py
+├── interface.py
+├── limpeza_sistema.py
+│
+├── dist/
+├── src/
+│   └── assets/
+│
+├── index.html
+├── cleancrow.spec
+├── LICENSE
+└── README.md
+```
+
+---
+
+## 🚀 Execução
+
+### Pré-requisitos
+
+* Python 3.10 ou superior
+* Sistema operacional Windows
+* Pip instalado
+
+### Instalação de dependências
+
+```bash id="y2n0bb"
+pip install PyQt5
+```
+
+### Execução
+
+```bash id="x2ktm4"
+python main.py
+```
+
+> O software solicita elevação de privilégios automaticamente quando necessário.
+
+---
+
+## 🏗️ Build do Executável
+
+### Utilizando PyInstaller
+
+```bash id="5k2w7s"
+pyinstaller --onefile limpeza_sistema.py
+```
+
+Ou com o arquivo de configuração:
+
+```bash id="9z0p2u"
+pyinstaller cleancrow.spec
+```
+
+Saída:
+
+```id="v4r2dx"
+/dist/cleancrow.exe
+```
+
+---
+
+## 🔐 Permissões e Segurança
+
+O software executa operações que exigem privilégios elevados, incluindo:
+
+* Acesso a diretórios protegidos do sistema
+* Exclusão de arquivos temporários globais
+* Execução de comandos administrativos
+
+A elevação é tratada automaticamente no início da execução.
+
+---
+
+## ⚠️ Limitações
+
+* Compatível apenas com Windows
+* Dependência de ferramentas nativas (ex: `winget`)
+* Não realiza limpeza de registro do Windows
+* Não possui sistema de rollback das ações executadas
+
+---
+
+## 🔧 Tecnologias Utilizadas
+
+* Python
+* PyQt5
+* ctypes (integração com Windows API)
+* Winget
+* PyInstaller
+
+---
+
+## 🧠 Considerações Técnicas
+
+* Operações de limpeza são realizadas diretamente via manipulação de arquivos e chamadas ao sistema
+* Execuções potencialmente demoradas são acompanhadas por feedback visual
+* Logs permitem rastreabilidade das ações executadas
+* Estrutura modular facilita manutenção e extensão
+
+---
+
+## 📌 Possíveis Extensões
+
+* Implementação de limpeza de registro (Registry)
+* Suporte a múltiplos sistemas operacionais
+* Sistema de plugins para rotinas adicionais
+* Agendamento automático de tarefas
+* Relatórios detalhados pós-execução
+
+---
+
+## 📄 Licença
+
+Distribuído sob a licença GNU GPL v3.0.
