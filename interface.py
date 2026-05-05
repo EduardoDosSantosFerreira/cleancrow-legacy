@@ -1,6 +1,9 @@
 # CleanCrow - © 2024 Eduardo Dos Santos Ferreira
-# Licenciado sob GNU GPL v3.0 - https://www.gnu.org/licenses/gpl-3.0.html
+# Licenciado sob GNU GPL v3.0
 
+import os
+import sys
+import time
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -14,177 +17,84 @@ from PyQt5.QtWidgets import (
     QFrame,
     QTextEdit,
     QSplitter,
+    QMenuBar,
+    QMenu,
+    QAction,
+    QButtonGroup,
 )
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat
-import os
-import sys
-import time
-import subprocess
 
-# Adicione esta linha para importar sua classe de limpeza
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from limpeza_sistema import SistemaLimpeza
+# Import da fachada unificada
+from core.limpeza import SistemaLimpeza
 
+
+# ============================================================================
+# FUNÇÃO PARA RECURSOS (SUPORTE A PYINSTALLER)
+# ============================================================================
+
+def resource_path(relative_path: str) -> str:
+    """Obtém o caminho correto para recursos"""
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
+# ============================================================================
+# WORKER THREAD
+# ============================================================================
 
 class WorkerThread(QThread):
     progress_updated = pyqtSignal(int)
     operation_completed = pyqtSignal(bool, str)
-    log_message = pyqtSignal(str, str)  # (mensagem, tipo)
-    operation_started = pyqtSignal(str)  # Nome da operação
+    log_message = pyqtSignal(str, str)
+    operation_started = pyqtSignal(str)
 
-    def __init__(self, operation, parent=None):
+    def __init__(self, operation: str, modo: str = "normal", parent=None):
         super().__init__(parent)
         self.operation = operation
-        self.sistema = SistemaLimpeza()
-        self.operation_names = {
-            "limpar_temporarios": "Limpando arquivos temporários...",
-            "limpar_logs": "Limpando logs do sistema...",
-            "limpar_update": "Limpando cache do Windows Update...",
-            "limpar_dns": "Limpando cache DNS...",
-            "limpar_edge": "Limpando cache do Microsoft Edge...",
-            "limpar_chrome": "Limpando cache do Google Chrome...",
-            "limpar_firefox": "Limpando cache do Firefox...",
-            "limpar_opera": "Limpando cache do Opera...",
-            "limpar_brave": "Limpando cache do Brave...",
-            "limpar_vivaldi": "Limpando cache do Vivaldi...",
-            "limpar_safari": "Limpando cache do Safari...",
-            "limpar_tor": "Limpando cache do Tor Browser...",
-            "limpar_maxthon": "Limpando cache do Maxthon...",
-            "limpar_waterfox": "Limpando cache do Waterfox...",
-            "limpar_pale_moon": "Limpando cache do Pale Moon...",
-            "limpar_lixeira": "Esvaziando lixeira...",
-            "remover_programas": "Removendo programas desnecessários...",
-            "limpar_espaco_disco": "Limpando espaço em disco...",
-            "verificar_disco": "Verificando disco...",
-            "desfragmentar_disco": "Desfragmentando disco...",
-            "limpar_desnecessarios": "Limpando componentes desnecessários...",
-            "limpar_atualizacao": "Limpando atualizações antigas...",
-            "compactar_sistema": "Compactando sistema...",
-            "desativar_hibernacao": "Desativando hibernação...",
-            "limpar_temp_adicional": "Limpando temporários adicionais...",
-            "desabilitar_inicializacao": "Desabilitando programas da inicialização...",
-            "otimizar_desligamento": "Otimizando tempo de desligamento...",
-            "limpar_miniaturas": "Limpando cache de miniaturas...",
-            "limpar_dumps_memoria": "Limpando dumps de memória...",
-            "limpar_relatorios_erros": "Limpando relatórios de erro...",
-            "limpar_logs_windows_update": "Limpando logs do Windows Update...",
-            "reiniciar_servicos_essenciais": "Reiniciando serviços essenciais...",
-            "limpar_cache_loja_windows": "Resetando cache da Microsoft Store...",
-            "remover_bloatware": "Removendo bloatware...",
-            "fechar_microsoft_store": "Fechando Microsoft Store...",
-            "limpar_cache_windows_update": "Limpando cache de atualizações do Windows...",
-            "limpar_defender_antivirus": "Limpando arquivos do Microsoft Defender...",
-            "limpar_arquivos_otimizacao": "Limpando arquivos de otimização de entrega...",
-            "limpar_temp_internet": "Limpando arquivos temporários da internet...",
-            "limpar_arquivos_windows": "Limpando arquivos extras do Windows...",
-        }
+        self.modo = modo
+        self.sistema = None
+        self._is_running = True
+        self.max_execution_time = 1800
+
+    def stop(self):
+        self._is_running = False
+        if self.sistema:
+            self.sistema.request_interruption()
 
     def run(self):
-        if self.operation == "limpeza":
-            success, message = self.sistema.executar_limpeza(self.update_progress_with_logs)
-        else:
-            success, message = self.executar_atualizacao_com_logs()
-        self.operation_completed.emit(success, message)
-
-    def update_progress_with_logs(self, progress):
-        # Emitir atualização de progresso
-        self.progress_updated.emit(progress)
-        
-        # Determinar qual operação está sendo executada baseada no progresso
-        for operation_name, display_name in self.operation_names.items():
-            if progress == self.get_progress_for_operation(operation_name):
-                self.operation_started.emit(display_name)
-                self.log_message.emit(f"▶️ Iniciando: {display_name}", "info")
-                break
-
-    def get_progress_for_operation(self, operation_name):
-        # Mapeia operações para valores de progresso (ajuste conforme seu sistema)
-        progress_map = {
-            "limpar_temporarios": 2,
-            "limpar_logs": 4,
-            "limpar_update": 6,
-            "limpar_dns": 8,
-            "limpar_edge": 10,
-            "limpar_chrome": 12,
-            "limpar_firefox": 14,
-            "limpar_opera": 16,
-            "limpar_brave": 18,
-            "limpar_vivaldi": 20,
-            "limpar_safari": 22,
-            "limpar_tor": 24,
-            "limpar_maxthon": 26,
-            "limpar_waterfox": 28,
-            "limpar_pale_moon": 30,
-            "limpar_lixeira": 33,
-            "remover_programas": 36,
-            "limpar_espaco_disco": 39,
-            "verificar_disco": 42,
-            "desfragmentar_disco": 45,
-            "limpar_desnecessarios": 48,
-            "limpar_atualizacao": 51,
-            "compactar_sistema": 54,
-            "desativar_hibernacao": 57,
-            "limpar_temp_adicional": 60,
-            "desabilitar_inicializacao": 63,
-            "otimizar_desligamento": 66,
-            "limpar_miniaturas": 69,
-            "limpar_dumps_memoria": 72,
-            "limpar_relatorios_erros": 75,
-            "limpar_logs_windows_update": 78,
-            "reiniciar_servicos_essenciais": 81,
-            "limpar_cache_loja_windows": 84,
-            "remover_bloatware": 87,
-            "fechar_microsoft_store": 90,
-            "limpar_cache_windows_update": 93,
-            "limpar_defender_antivirus": 95,
-            "limpar_arquivos_otimizacao": 97,
-            "limpar_temp_internet": 98,
-            "limpar_arquivos_windows": 100,
-        }
-        return progress_map.get(operation_name, 0)
-
-    def executar_atualizacao_com_logs(self):
-        """
-        Método simplificado que usa diretamente a classe SistemaLimpeza
-        """
         try:
-            self.log_message.emit("🔍 Verificando atualizações disponíveis...", "info")
+            # Injetar flag de modo para o sistema
+            if self.modo == "rapido":
+                sys.argv.append("--modo-rapido")
+            elif self.modo == "seguro":
+                sys.argv.append("--modo-seguro")
             
-            # Usar o método da classe SistemaLimpeza em vez de chamar subprocess diretamente
-            success, message = self.sistema.executar_atualizacao(self.update_progress_for_atualizacao)
+            self.sistema = SistemaLimpeza(dry_run=False, verbose=True, quiet=False)
             
-            if success:
-                self.log_message.emit(f"✅ {message}", "success")
-                return True, message
+            if self.operation == "limpeza":
+                success, message = self.sistema.executar_limpeza(self.update_progress)
             else:
-                self.log_message.emit(f"❌ {message}", "error")
-                return False, message
+                success, message = self.sistema.executar_atualizacao(self.update_progress)
+            
+            if self._is_running:
+                self.operation_completed.emit(success, message)
                 
         except Exception as e:
-            self.log_message.emit(f"❌ Erro inesperado: {str(e)}", "error")
-            return False, f"Erro durante a atualização: {str(e)}"
+            if self._is_running:
+                self.operation_completed.emit(False, f"Erro interno: {str(e)}")
 
-    def update_progress_for_atualizacao(self, progress):
-        """
-        Callback para atualizar o progresso durante a atualização
-        """
-        self.progress_updated.emit(progress)
-        
-        # Mapear progresso para mensagens descritivas
-        if progress <= 15:
-            self.operation_started.emit("Verificando se winget está disponível...")
-            self.log_message.emit("🔍 Verificando se winget está disponível...", "info")
-        elif progress <= 30:
-            self.operation_started.emit("Verificando atualizações disponíveis...")
-            self.log_message.emit("📋 Verificando atualizações disponíveis...", "info")
-        elif progress <= 60:
-            self.operation_started.emit("Executando atualizações...")
-            self.log_message.emit("🚀 Executando atualizações...", "info")
-        elif progress < 100:
-            self.operation_started.emit("Concluindo atualização...")
-            self.log_message.emit("⚡ Concluindo atualização...", "info")
+    def update_progress(self, progress: int):
+        if self._is_running:
+            self.progress_updated.emit(progress)
 
+
+# ============================================================================
+# CLASSE PRINCIPAL DA INTERFACE
+# ============================================================================
 
 class CleanCrowUI(QMainWindow):
     def __init__(self):
@@ -192,29 +102,6 @@ class CleanCrowUI(QMainWindow):
         self.setWindowTitle("CleanCrow - Otimizador de Sistema")
         self.setMinimumSize(800, 600)
         self.setMaximumSize(1100, 900)
-
-        # Definir ícone da janela
-        icone_janela = self.obter_caminho_icone("crowico.png")
-        if icone_janela:
-            self.setWindowIcon(QIcon(icone_janela))
-
-        self.setup_ui()
-        self.current_operation = None
-
-    def obter_caminho_icone(self, nome_arquivo):
-        caminhos_possiveis = [
-            os.path.join(os.path.dirname(__file__), "assets", "img", "profile_icons", nome_arquivo),
-            os.path.join(os.path.dirname(__file__), "src", "assets", "img", "profile_icons", nome_arquivo),
-            os.path.join(os.path.dirname(__file__), nome_arquivo),
-            os.path.join(os.path.dirname(__file__), "..", "assets", "img", "profile_icons", nome_arquivo),
-        ]
-        for caminho in caminhos_possiveis:
-            if os.path.exists(caminho):
-                return caminho
-        return None
-
-    def setup_ui(self):
-        # Configuração principal da janela
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #111111;
@@ -247,66 +134,177 @@ class CleanCrowUI(QMainWindow):
             }
         """)
 
+        # Ícone
+        icone = self.obter_caminho_icone("crowico.png")
+        if icone:
+            self.setWindowIcon(QIcon(icone))
+
+        self.modo_atual = "normal"  # normal, rapido, seguro
+        self.worker_thread = None
+        
+        self.setup_ui()
+        self.setup_menu()
+        self.setup_modo_selector()
+
+    def obter_caminho_icone(self, nome_arquivo: str) -> str:
+        caminhos = [
+            resource_path(os.path.join("assets", "img", "profile_icons", nome_arquivo)),
+            os.path.join(os.path.dirname(__file__), "assets", "img", "profile_icons", nome_arquivo),
+            os.path.join(os.path.dirname(__file__), nome_arquivo),
+        ]
+        for caminho in caminhos:
+            if caminho and os.path.exists(caminho):
+                return caminho
+        return None
+
+    def setup_menu(self):
+        menubar = self.menuBar()
+        menubar.setStyleSheet("""
+            QMenuBar {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                border-bottom: 1px solid #333333;
+            }
+            QMenuBar::item {
+                background-color: transparent;
+                padding: 4px 8px;
+            }
+            QMenuBar::item:selected {
+                background-color: #333333;
+            }
+            QMenu {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                border: 1px solid #333333;
+            }
+            QMenu::item {
+                padding: 4px 20px;
+            }
+            QMenu::item:selected {
+                background-color: #3498db;
+            }
+        """)
+        
+        ajuda_menu = menubar.addMenu("Ajuda")
+        sobre_action = QAction("Sobre", self)
+        sobre_action.triggered.connect(self.mostrar_sobre)
+        ajuda_menu.addAction(sobre_action)
+
+    def setup_modo_selector(self):
+        """Painel de seleção de modo"""
+        modo_frame = QFrame()
+        modo_frame.setStyleSheet("""
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333333;
+            margin-top: 5px;
+        """)
+        modo_layout = QHBoxLayout(modo_frame)
+        modo_layout.setSpacing(10)
+        modo_layout.setContentsMargins(10, 8, 10, 8)
+        
+        # Label de modo
+        label_modo = QLabel("Selecione o modo:")
+        label_modo.setStyleSheet("color: #95a5a6; font-weight: bold;")
+        modo_layout.addWidget(label_modo)
+        
+        self.btn_normal = self.criar_botao_modo("🚀 NORMAL", "#e74c3c", self.set_modo_normal)
+        self.btn_rapido = self.criar_botao_modo("⚡ RÁPIDO", "#3498db", self.set_modo_rapido)
+        self.btn_seguro = self.criar_botao_modo("🔒 SEGURO", "#27ae60", self.set_modo_seguro)
+        
+        # Estilo do botão normal como ativo (padrão)
+        self.btn_normal.setStyleSheet(self._estilo_botao_modo("#e74c3c", True))
+        
+        modo_layout.addWidget(self.btn_normal)
+        modo_layout.addWidget(self.btn_rapido)
+        modo_layout.addWidget(self.btn_seguro)
+        modo_layout.addStretch()
+        
+        # Descrição do modo
+        self.modo_descricao = QLabel("Completo: limpeza em todos os discos + DISM + CleanMgr")
+        self.modo_descricao.setStyleSheet("color: #e74c3c; font-size: 11px; padding: 4px;")
+        modo_layout.addWidget(self.modo_descricao)
+        
+        self.main_layout.insertWidget(1, modo_frame)
+
+    def criar_botao_modo(self, texto: str, cor: str, callback):
+        btn = QPushButton(texto)
+        btn.setStyleSheet(self._estilo_botao_modo(cor, False))
+        btn.clicked.connect(callback)
+        btn.setMinimumWidth(120)
+        return btn
+
+    def _estilo_botao_modo(self, cor: str, ativo: bool) -> str:
+        if ativo:
+            return f"""
+                QPushButton {{
+                    background-color: {cor};
+                    color: white;
+                    font-weight: bold;
+                    border: 2px solid white;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    min-width: 100px;
+                }}
+            """
+        return f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {cor};
+                font-weight: bold;
+                border: 2px solid {cor};
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                min-width: 100px;
+            }}
+            QPushButton:hover {{
+                background-color: {cor};
+                color: white;
+            }}
+        """
+
+    def set_modo_normal(self):
+        self.modo_atual = "normal"
+        self.atualizar_botoes_modo("#e74c3c", self.btn_normal)
+        self.modo_descricao.setText("Completo: limpeza em todos os discos + DISM + CleanMgr")
+        self.modo_descricao.setStyleSheet("color: #e74c3c; font-size: 11px; padding: 4px;")
+        self.add_log_message("📌 Modo NORMAL selecionado - Limpeza completa em todos os discos", "info")
+
+    def set_modo_rapido(self):
+        self.modo_atual = "rapido"
+        self.atualizar_botoes_modo("#3498db", self.btn_rapido)
+        self.modo_descricao.setText("Rápido: apenas caches leves e arquivos temporários")
+        self.modo_descricao.setStyleSheet("color: #3498db; font-size: 11px; padding: 4px;")
+        self.add_log_message("⚡ Modo RÁPIDO selecionado - Apenas caches leves", "info")
+
+    def set_modo_seguro(self):
+        self.modo_atual = "seguro"
+        self.atualizar_botoes_modo("#27ae60", self.btn_seguro)
+        self.modo_descricao.setText("Seguro: não mexe em arquivos do sistema")
+        self.modo_descricao.setStyleSheet("color: #27ae60; font-size: 11px; padding: 4px;")
+        self.add_log_message("🔒 Modo SEGURO selecionado - Não mexe em arquivos do sistema", "info")
+
+    def atualizar_botoes_modo(self, cor_ativa, botao_ativo):
+        self.btn_normal.setStyleSheet(self._estilo_botao_modo("#e74c3c", False))
+        self.btn_rapido.setStyleSheet(self._estilo_botao_modo("#3498db", False))
+        self.btn_seguro.setStyleSheet(self._estilo_botao_modo("#27ae60", False))
+        botao_ativo.setStyleSheet(self._estilo_botao_modo(cor_ativa, True))
+
+    def setup_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Reduzindo as margens e espaçamentos
         self.main_layout = QVBoxLayout()
         self.main_layout.setContentsMargins(15, 15, 15, 15)
         self.main_layout.setSpacing(10)
         self.central_widget.setLayout(self.main_layout)
 
-        # Cabeçalho
         self.setup_header()
-
-        # Área principal dividida
-        splitter = QSplitter(Qt.Vertical)
-        self.main_layout.addWidget(splitter, 1)
-
-        # Painel superior - Controles
-        top_panel = QWidget()
-        top_layout = QVBoxLayout(top_panel)
-        top_layout.setSpacing(10)
-        top_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Botões de ação
-        self.setup_action_buttons(top_layout)
-        
-        # Painel de progresso
-        self.setup_progress_panel(top_layout)
-        
-        splitter.addWidget(top_panel)
-
-        # Painel inferior - Logs
-        bottom_panel = QWidget()
-        bottom_layout = QVBoxLayout(bottom_panel)
-        bottom_layout.setContentsMargins(0, 0, 0, 0)
-        bottom_layout.setSpacing(5)
-        
-        # Título da área de logs
-        log_title = QLabel("📝 Log de Operações")
-        log_title.setStyleSheet("""
-            font-size: 13px;
-            font-weight: bold;
-            color: #3498db;
-            padding: 5px;
-            background-color: #222222;
-            border-radius: 5px;
-        """)
-        bottom_layout.addWidget(log_title)
-        
-        # Área de logs - reduzindo altura máxima
-        self.log_text = QTextEdit()
-        self.log_text.setReadOnly(True)
-        self.log_text.setMaximumHeight(200)
-        bottom_layout.addWidget(self.log_text)
-        
-        splitter.addWidget(bottom_panel)
-        
-        # Definir proporções iniciais
-        splitter.setSizes([400, 200])
-
-        self.worker_thread = None
+        self.setup_action_buttons()
+        self.setup_progress_panel()
+        self.setup_log_panel()
 
     def setup_header(self):
         header_widget = QWidget()
@@ -314,26 +312,17 @@ class CleanCrowUI(QMainWindow):
         header_layout.setContentsMargins(0, 0, 0, 0)
         header_layout.setSpacing(10)
 
-        # Logo
         logo_path = self.obter_caminho_icone("crowico.png")
         if logo_path:
             logo_label = QLabel()
-            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(100, 100)))
+            logo_label.setPixmap(QIcon(logo_path).pixmap(QSize(60, 60)))
             header_layout.addWidget(logo_label)
 
-        # Título
         title_label = QLabel("CLEANCROW")
-        title_label.setStyleSheet("""
-            font-size: 28px;
-            font-weight: bold;
-            color: #e74c3c;
-            padding: 0;
-        """)
-        
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #e74c3c;")
         header_layout.addWidget(title_label)
         header_layout.addStretch()
 
-        # Indicador de status
         self.status_indicator = QLabel("🟢 Pronto")
         self.status_indicator.setStyleSheet("""
             font-size: 11px;
@@ -347,352 +336,142 @@ class CleanCrowUI(QMainWindow):
 
         self.main_layout.addWidget(header_widget)
 
-    def setup_action_buttons(self, layout):
+    def setup_action_buttons(self):
         button_container = QWidget()
         button_layout = QHBoxLayout(button_container)
         button_layout.setSpacing(15)
-        button_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Botão Limpar
-        self.limpar_button = self.create_action_button(
-            " Limpar Sistema", 
-            "broom.png", 
-            "#e74c3c", 
-            "#c0392b",
-            self.iniciar_limpeza
-        )
-        button_layout.addWidget(self.limpar_button)
-        
-        # Botão Atualizar
-        self.atualizar_button = self.create_action_button(
-            " Atualizar Sistema", 
-            "refresh.png", 
-            "#3498db", 
-            "#2980b9",
-            self.iniciar_atualizacao
-        )
-        button_layout.addWidget(self.atualizar_button)
-        
-        # Botão Limpar Logs
-        self.clear_logs_button = self.create_action_button(
-            " Limpar Logs", 
-            "trash.png", 
-            "#7f8c8d", 
-            "#616a6b",
-            self.limpar_logs
-        )
-        button_layout.addWidget(self.clear_logs_button)
-        
-        layout.addWidget(button_container)
-
-    def create_action_button(self, text, icon_name, color, hover_color, callback):
-        button = QPushButton(text)
-        
-        icon_path = self.obter_caminho_icone(icon_name)
-        if icon_path:
-            button.setIcon(QIcon(icon_path))
-            button.setIconSize(QSize(20, 20))
-        
-        button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {color};
+        self.limpar_button = QPushButton("🧹 Limpar Sistema")
+        self.limpar_button.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
                 color: white;
                 font-weight: bold;
                 border: none;
-                padding: 10px 16px;
-                border-radius: 5px;
-                font-size: 13px;
-                min-width: 160px;
-            }}
-            QPushButton:hover {{
-                background-color: {hover_color};
-            }}
-            QPushButton:disabled {{
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-size: 14px;
+                min-width: 180px;
+            }
+            QPushButton:hover {
+                background-color: #c0392b;
+            }
+            QPushButton:disabled {
                 background-color: #5d6d7e;
-                color: #bdc3c7;
-            }}
+            }
         """)
+        self.limpar_button.clicked.connect(self.iniciar_limpeza)
         
-        button.clicked.connect(callback)
-        return button
+        self.atualizar_button = QPushButton("🔄 Atualizar Sistema")
+        self.atualizar_button.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                font-weight: bold;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-size: 14px;
+                min-width: 180px;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+            QPushButton:disabled {
+                background-color: #5d6d7e;
+            }
+        """)
+        self.atualizar_button.clicked.connect(self.iniciar_atualizacao)
+        
+        self.clear_logs_button = QPushButton("🗑️ Limpar Logs")
+        self.clear_logs_button.setStyleSheet("""
+            QPushButton {
+                background-color: #7f8c8d;
+                color: white;
+                font-weight: bold;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-size: 14px;
+                min-width: 180px;
+            }
+            QPushButton:hover {
+                background-color: #616a6b;
+            }
+            QPushButton:disabled {
+                background-color: #5d6d7e;
+            }
+        """)
+        self.clear_logs_button.clicked.connect(self.limpar_logs)
+        
+        button_layout.addWidget(self.limpar_button)
+        button_layout.addWidget(self.atualizar_button)
+        button_layout.addWidget(self.clear_logs_button)
+        button_layout.addStretch()
+        
+        self.main_layout.addWidget(button_container)
 
-    def setup_progress_panel(self, layout):
+    def setup_progress_panel(self):
         progress_frame = QFrame()
-        progress_frame.setStyleSheet("""
-            background-color: #1a1a1a;
-            border-radius: 6px;
-            border: 1px solid #333333;
-            padding: 12px;
-        """)
+        progress_frame.setStyleSheet("background-color: #1a1a1a; border-radius: 6px; border: 1px solid #333333; padding: 10px;")
         progress_layout = QVBoxLayout(progress_frame)
-        progress_layout.setSpacing(8)
-        
-        # Informações de progresso
-        progress_info = QHBoxLayout()
-        progress_info.setSpacing(10)
         
         self.progress_label = QLabel("Aguardando início da operação")
-        self.progress_label.setStyleSheet("""
-            font-size: 13px;
-            color: #ecf0f1;
-            font-weight: bold;
-        """)
+        self.progress_label.setStyleSheet("font-size: 12px; color: #ecf0f1;")
         
-        # Container para porcentagem e contador de operações
-        status_container = QHBoxLayout()
-        status_container.setSpacing(10)
-        
-        self.progress_percent = QLabel("0%")
-        self.progress_percent.setStyleSheet("""
-            font-size: 16px;
-            color: #3498db;
-            font-weight: bold;
-            min-width: 45px;
-        """)
-        
-        self.operations_counter = QLabel("0/45")
-        self.operations_counter.setStyleSheet("""
-            font-size: 13px;
-            color: #95a5a6;
-            font-weight: bold;
-            padding: 2px 8px;
-            background-color: #222222;
-            border-radius: 8px;
-        """)
-        
-        status_container.addWidget(self.progress_percent)
-        status_container.addWidget(self.operations_counter)
-        
-        progress_info.addWidget(self.progress_label)
-        progress_info.addStretch()
-        progress_info.addLayout(status_container)
-        
-        progress_layout.addLayout(progress_info)
-        
-        # Barra de progresso
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
-                border: 2px solid #333333;
-                border-radius: 5px;
-                height: 18px;
+                border: 1px solid #333333;
+                border-radius: 4px;
+                height: 16px;
                 background-color: #222222;
             }
             QProgressBar::chunk {
                 background-color: #e74c3c;
                 border-radius: 3px;
-                border: 1px solid #c0392b;
             }
         """)
+        
+        progress_layout.addWidget(self.progress_label)
         progress_layout.addWidget(self.progress_bar)
-        
-        layout.addWidget(progress_frame)
+        self.main_layout.addWidget(progress_frame)
 
-    def add_log_message(self, message, msg_type="info"):
+    def setup_log_panel(self):
+        log_title = QLabel("📝 Log de Operações")
+        log_title.setStyleSheet("font-size: 12px; font-weight: bold; color: #3498db; padding: 4px;")
+        self.main_layout.addWidget(log_title)
+        
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        self.log_text.setMaximumHeight(200)
+        self.main_layout.addWidget(self.log_text)
+
+    def add_log_message(self, message: str, msg_type: str = "info"):
         timestamp = time.strftime("%H:%M:%S")
-        
-        # Define cores baseadas no tipo de mensagem
-        colors = {
-            "info": "#3498db",
-            "success": "#27ae60",
-            "warning": "#f39c12",
-            "error": "#e74c3c",
-            "system": "#9b59b6",
-        }
-        
+        colors = {"info": "#3498db", "success": "#27ae60", "warning": "#f39c12", "error": "#e74c3c", "system": "#9b59b6"}
         color = colors.get(msg_type, "#ffffff")
         
-        # Cria formatação para a mensagem
         cursor = self.log_text.textCursor()
         cursor.movePosition(QTextCursor.End)
         
-        # Adiciona timestamp
-        format_timestamp = QTextCharFormat()
-        format_timestamp.setForeground(QColor("#95a5a6"))
-        cursor.setCharFormat(format_timestamp)
+        fmt_time = QTextCharFormat()
+        fmt_time.setForeground(QColor("#95a5a6"))
+        cursor.setCharFormat(fmt_time)
         cursor.insertText(f"[{timestamp}] ")
         
-        # Adiciona mensagem com cor
-        format_message = QTextCharFormat()
-        format_message.setForeground(QColor(color))
-        cursor.setCharFormat(format_message)
+        fmt_msg = QTextCharFormat()
+        fmt_msg.setForeground(QColor(color))
+        cursor.setCharFormat(fmt_msg)
         cursor.insertText(f"{message}\n")
         
-        # Rola para a última linha
         self.log_text.setTextCursor(cursor)
         self.log_text.ensureCursorVisible()
 
-    def iniciar_limpeza(self):
-        self.limpar_button.setEnabled(False)
-        self.atualizar_button.setEnabled(False)
-        self.clear_logs_button.setEnabled(False)
-        
-        self.progress_bar.setValue(0)
-        self.progress_percent.setText("0%")
-        self.operations_counter.setText("0/45")
-        self.status_indicator.setText("🟡 Executando")
-        self.status_indicator.setStyleSheet("""
-            font-size: 11px;
-            padding: 4px 8px;
-            background-color: #f39c12;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-        """)
-        
-        self.progress_label.setText("Preparando sistema para limpeza...")
-        
-        # Limpar logs anteriores
-        self.log_text.clear()
-        self.add_log_message("🚀 Iniciando limpeza completa do sistema...", "system")
-        self.add_log_message("🔐 Verificando privilégios de administrador...", "info")
-        
-        # Atualizar estilo da barra de progresso
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #333333;
-                border-radius: 5px;
-                height: 18px;
-                background-color: #222222;
-            }
-            QProgressBar::chunk {
-                background-color: #e74c3c;
-                border-radius: 3px;
-                border: 1px solid #c0392b;
-            }
-        """)
-        
-        self.worker_thread = WorkerThread("limpeza")
-        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
-        self.worker_thread.operation_completed.connect(self.operacao_concluida)
-        self.worker_thread.log_message.connect(self.add_log_message)
-        self.worker_thread.operation_started.connect(self.atualizar_operacao_atual)
-        self.worker_thread.start()
-
-    def iniciar_atualizacao(self):
-        self.limpar_button.setEnabled(False)
-        self.atualizar_button.setEnabled(False)
-        self.clear_logs_button.setEnabled(False)
-        
-        self.progress_bar.setValue(0)
-        self.progress_label.setText("Iniciando atualização do sistema...")
-        self.progress_percent.setText("0%")
-        self.operations_counter.setText("0%")
-        self.status_indicator.setText("🟡 Executando")
-        self.status_indicator.setStyleSheet("""
-            font-size: 11px;
-            padding: 4px 8px;
-            background-color: #f39c12;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-        """)
-        
-        # Limpar logs anteriores
-        self.log_text.clear()
-        self.add_log_message("🔄 Iniciando atualização do sistema...", "system")
-        
-        # Atualizar estilo da barra de progresso para azul
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #333333;
-                border-radius: 5px;
-                height: 18px;
-                background-color: #222222;
-            }
-            QProgressBar::chunk {
-                background-color: #3498db;
-                border-radius: 3px;
-                border: 1px solid #2980b9;
-            }
-        """)
-        
-        self.worker_thread = WorkerThread("atualizacao")
-        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
-        self.worker_thread.operation_completed.connect(self.operacao_concluida)
-        self.worker_thread.log_message.connect(self.add_log_message)
-        self.worker_thread.operation_started.connect(self.atualizar_operacao_atual)
-        self.worker_thread.start()
-
-    def atualizar_progresso(self, valor):
-        self.progress_bar.setValue(valor)
-        self.progress_percent.setText(f"{valor}%")
-        
-        # Atualizar contador de operações
-        if self.worker_thread and self.worker_thread.operation == "limpeza":
-            completed = int(valor / 100 * 45)
-            self.operations_counter.setText(f"{completed}/45")
-        elif self.worker_thread and self.worker_thread.operation == "atualizacao":
-            self.operations_counter.setText(f"{valor}%")
-
-    def atualizar_operacao_atual(self, operacao):
-        self.progress_label.setText(f"Executando: {operacao}")
-
-    def operacao_concluida(self, success, message):
-        if success:
-            self.status_indicator.setText("🟢 Concluído")
-            self.status_indicator.setStyleSheet("""
-                font-size: 11px;
-                padding: 4px 8px;
-                background-color: #27ae60;
-                border-radius: 8px;
-                color: white;
-                font-weight: bold;
-            """)
-            
-            self.progress_bar.setValue(100)
-            self.progress_percent.setText("100%")
-            if self.worker_thread and self.worker_thread.operation == "limpeza":
-                self.operations_counter.setText("45/45")
-            else:
-                self.operations_counter.setText("100%")
-            self.progress_label.setText("Operação concluída com sucesso!")
-            
-            self.add_log_message("✅ " + message, "success")
-            
-            # Mostrar mensagem de sucesso
-            QTimer.singleShot(500, lambda: self.show_message("Sucesso", message, QMessageBox.Information))
-            
-            # Atualizar estilo da barra para verde
-            self.progress_bar.setStyleSheet("""
-                QProgressBar {
-                    border: 2px solid #333333;
-                    border-radius: 5px;
-                    height: 18px;
-                    background-color: #222222;
-                }
-                QProgressBar::chunk {
-                    background-color: #27ae60;
-                    border-radius: 3px;
-                    border: 1px solid #229954;
-                }
-            """)
-        else:
-            self.status_indicator.setText("🔴 Erro")
-            self.status_indicator.setStyleSheet("""
-                font-size: 11px;
-                padding: 4px 8px;
-                background-color: #e74c3c;
-                border-radius: 8px;
-                color: white;
-                font-weight: bold;
-            """)
-            
-            self.progress_label.setText("Operação falhou!")
-            
-            self.add_log_message("❌ " + message, "error")
-            
-            # Mostrar mensagem de erro
-            QTimer.singleShot(500, lambda: self.show_message("Erro", message, QMessageBox.Critical))
-
-        # Reabilitar botões
-        self.limpar_button.setEnabled(True)
-        self.atualizar_button.setEnabled(True)
-        self.clear_logs_button.setEnabled(True)
-
-    def show_message(self, title, message, icon):
+    def show_message(self, title: str, message: str, icon):
+        """Exibe caixa de diálogo estilizada"""
         msg_box = QMessageBox()
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
@@ -711,6 +490,7 @@ class CleanCrowUI(QMainWindow):
                 padding: 6px 14px;
                 border-radius: 4px;
                 font-weight: bold;
+                min-width: 80px;
             }
             QPushButton:hover {
                 background-color: #2980b9;
@@ -718,16 +498,122 @@ class CleanCrowUI(QMainWindow):
         """)
         msg_box.exec_()
 
+    def iniciar_limpeza(self):
+        self.limpar_button.setEnabled(False)
+        self.atualizar_button.setEnabled(False)
+        self.clear_logs_button.setEnabled(False)
+        
+        self.progress_bar.setValue(0)
+        self.status_indicator.setText("🟡 Executando")
+        self.status_indicator.setStyleSheet("""
+            font-size: 11px;
+            padding: 4px 8px;
+            background-color: #f39c12;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        """)
+        
+        self.log_text.clear()
+        self.add_log_message("🚀 Iniciando limpeza do sistema...", "system")
+        self.add_log_message(f"📌 Modo selecionado: {self.modo_atual.upper()}", "info")
+        
+        self.worker_thread = WorkerThread("limpeza", self.modo_atual)
+        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
+        self.worker_thread.operation_completed.connect(self.operacao_concluida)
+        self.worker_thread.log_message.connect(self.add_log_message)
+        self.worker_thread.start()
+
+    def iniciar_atualizacao(self):
+        self.limpar_button.setEnabled(False)
+        self.atualizar_button.setEnabled(False)
+        self.clear_logs_button.setEnabled(False)
+        
+        self.progress_bar.setValue(0)
+        self.progress_label.setText("Iniciando atualização do sistema...")
+        self.status_indicator.setText("🟡 Executando")
+        self.status_indicator.setStyleSheet("""
+            font-size: 11px;
+            padding: 4px 8px;
+            background-color: #f39c12;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        """)
+        
+        self.log_text.clear()
+        self.add_log_message("🔄 Iniciando atualização do sistema...", "system")
+        
+        self.worker_thread = WorkerThread("atualizacao", self.modo_atual)
+        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
+        self.worker_thread.operation_completed.connect(self.operacao_concluida)
+        self.worker_thread.log_message.connect(self.add_log_message)
+        self.worker_thread.start()
+
+    def atualizar_progresso(self, valor: int):
+        self.progress_bar.setValue(valor)
+        self.progress_label.setText(f"Progresso: {valor}%")
+
+    def operacao_concluida(self, success: bool, message: str):
+        if success:
+            self.status_indicator.setText("🟢 Concluído")
+            self.status_indicator.setStyleSheet("""
+                font-size: 11px;
+                padding: 4px 8px;
+                background-color: #27ae60;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+            """)
+            self.progress_bar.setValue(100)
+            self.progress_label.setText("Operação concluída com sucesso!")
+            self.add_log_message(f"✅ {message}", "success")
+            QTimer.singleShot(500, lambda: self.show_message("Sucesso", message, QMessageBox.Information))
+        else:
+            self.status_indicator.setText("🔴 Erro")
+            self.status_indicator.setStyleSheet("""
+                font-size: 11px;
+                padding: 4px 8px;
+                background-color: #e74c3c;
+                border-radius: 8px;
+                color: white;
+                font-weight: bold;
+            """)
+            self.progress_label.setText("Operação falhou!")
+            self.add_log_message(f"❌ {message}", "error")
+            QTimer.singleShot(500, lambda: self.show_message("Erro", message, QMessageBox.Critical))
+
+        self.limpar_button.setEnabled(True)
+        self.atualizar_button.setEnabled(True)
+        self.clear_logs_button.setEnabled(True)
+        self.worker_thread = None
+
     def limpar_logs(self):
         self.log_text.clear()
         self.add_log_message("🗑️ Logs limpos com sucesso!", "info")
+
+    def mostrar_sobre(self):
+        QMessageBox.about(self, "Sobre o CleanCrow",
+            "CleanCrow - Otimizador de Sistema\n\n"
+            "Versão: 3.0.0\n"
+            "© 2024 Eduardo Dos Santos Ferreira\n\n"
+            "Modos de limpeza:\n"
+            "• NORMAL: Limpeza completa em todos os discos + DISM + CleanMgr\n"
+            "• RÁPIDO: Apenas caches leves e temporários\n"
+            "• SEGURO: Não mexe em arquivos do sistema\n\n"
+            "Licenciado sob GNU GPL v3.0")
+
+    def closeEvent(self, event):
+        if self.worker_thread and self.worker_thread.isRunning():
+            self.worker_thread.stop()
+            self.worker_thread.quit()
+            self.worker_thread.wait(3000)
+        event.accept()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    
     window = CleanCrowUI()
     window.show()
-    
     sys.exit(app.exec_())

@@ -4,13 +4,12 @@ from interface import CleanCrowUI
 
 
 def main():
-    # Verificar se o sistema é Windows
     if sys.platform != "win32":
         print("Este software é compatível apenas com Windows.")
         return
 
     app = QApplication(sys.argv)
-    app.setStyle("Fusion")  # Estilo moderno
+    app.setStyle("Fusion")
 
     window = CleanCrowUI()
     window.show()
