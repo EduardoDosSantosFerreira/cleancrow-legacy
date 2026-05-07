@@ -8,35 +8,29 @@ O software automatiza tarefas comuns de manutenção, removendo arquivos desnece
 
 ## ⚙️ Funcionalidades
 
-* 🧹 **Limpeza de arquivos temporários**
+- 🧹 **Limpeza de arquivos temporários**
+  - Diretórios de `%TEMP%`
+  - Cache do sistema
+  - Arquivos residuais comuns
 
-  * Diretórios de `%TEMP%`
-  * Cache do sistema
-  * Arquivos residuais comuns
+- 🗑️ **Remoção de arquivos desnecessários**
+  - Arquivos de log antigos
+  - Resíduos de aplicações
 
-* 🗑️ **Remoção de arquivos desnecessários**
+- ⚡ **Otimizações básicas do sistema**
+  - Execução de comandos nativos do Windows
+  - Limpeza de componentes acumulados
 
-  * Arquivos de log antigos
-  * Resíduos de aplicações
+- 📦 **Integração com winget**
+  - Instalação e atualização de pacotes
+  - Automação de comandos via CLI
 
-* ⚡ **Otimizações básicas do sistema**
+- 📊 **Execução com feedback em tempo real**
+  - Barra de progresso
+  - Logs detalhados por operação
 
-  * Execução de comandos nativos do Windows
-  * Limpeza de componentes acumulados
-
-* 📦 **Integração com winget**
-
-  * Instalação e atualização de pacotes
-  * Automação de comandos via CLI
-
-* 📊 **Execução com feedback em tempo real**
-
-  * Barra de progresso
-  * Logs detalhados por operação
-
-* 🔐 **Elevação de privilégios automática**
-
-  * Execução como administrador quando necessário
+- 🔐 **Elevação de privilégios automática**
+  - Execução como administrador quando necessário
 
 ---
 
@@ -44,22 +38,19 @@ O software automatiza tarefas comuns de manutenção, removendo arquivos desnece
 
 O projeto segue uma separação simples entre interface e lógica:
 
-* **Camada de Interface (`interface.py`)**
+- **Camada de Interface (`interface.py`)**
+  - Construída com PyQt5
+  - Responsável pela interação com o usuário
+  - Atualização de logs e progresso
 
-  * Construída com PyQt5
-  * Responsável pela interação com o usuário
-  * Atualização de logs e progresso
+- **Camada de Lógica (`limpeza_sistema.py`)**
+  - Execução das rotinas de limpeza
+  - Chamadas ao sistema operacional
+  - Manipulação de arquivos e diretórios
 
-* **Camada de Lógica (`limpeza_sistema.py`)**
-
-  * Execução das rotinas de limpeza
-  * Chamadas ao sistema operacional
-  * Manipulação de arquivos e diretórios
-
-* **Ponto de Entrada (`main.py`)**
-
-  * Inicialização da aplicação
-  * Controle de execução e permissões
+- **Ponto de Entrada (`main.py`)**
+  - Inicialização da aplicação
+  - Controle de execução e permissões
 
 ---
 
@@ -88,9 +79,9 @@ cleancrow-legacy/
 
 ### Pré-requisitos
 
-* Python 3.10 ou superior
-* Sistema operacional Windows
-* Pip instalado
+- Python 3.10 ou superior
+- Sistema operacional Windows
+- Pip instalado
 
 ### Instalação de dependências
 
@@ -134,9 +125,9 @@ Saída:
 
 O software executa operações que exigem privilégios elevados, incluindo:
 
-* Acesso a diretórios protegidos do sistema
-* Exclusão de arquivos temporários globais
-* Execução de comandos administrativos
+- Acesso a diretórios protegidos do sistema
+- Exclusão de arquivos temporários globais
+- Execução de comandos administrativos
 
 A elevação é tratada automaticamente no início da execução.
 
@@ -144,39 +135,39 @@ A elevação é tratada automaticamente no início da execução.
 
 ## ⚠️ Limitações
 
-* Compatível apenas com Windows
-* Dependência de ferramentas nativas (ex: `winget`)
-* Não realiza limpeza de registro do Windows
-* Não possui sistema de rollback das ações executadas
+- Compatível apenas com Windows
+- Dependência de ferramentas nativas (ex: `winget`)
+- Não realiza limpeza de registro do Windows
+- Não possui sistema de rollback das ações executadas
 
 ---
 
 ## 🔧 Tecnologias Utilizadas
 
-* Python
-* PyQt5
-* ctypes (integração com Windows API)
-* Winget
-* PyInstaller
+- Python
+- PyQt5
+- ctypes (integração com Windows API)
+- Winget
+- PyInstaller
 
 ---
 
 ## 🧠 Considerações Técnicas
 
-* Operações de limpeza são realizadas diretamente via manipulação de arquivos e chamadas ao sistema
-* Execuções potencialmente demoradas são acompanhadas por feedback visual
-* Logs permitem rastreabilidade das ações executadas
-* Estrutura modular facilita manutenção e extensão
+- Operações de limpeza são realizadas diretamente via manipulação de arquivos e chamadas ao sistema
+- Execuções potencialmente demoradas são acompanhadas por feedback visual
+- Logs permitem rastreabilidade das ações executadas
+- Estrutura modular facilita manutenção e extensão
 
 ---
 
 ## 📌 Possíveis Extensões
 
-* Implementação de limpeza de registro (Registry)
-* Suporte a múltiplos sistemas operacionais
-* Sistema de plugins para rotinas adicionais
-* Agendamento automático de tarefas
-* Relatórios detalhados pós-execução
+- Implementação de limpeza de registro (Registry)
+- Suporte a múltiplos sistemas operacionais
+- Sistema de plugins para rotinas adicionais
+- Agendamento automático de tarefas
+- Relatórios detalhados pós-execução
 
 ---
 
