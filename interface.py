@@ -4,6 +4,8 @@
 import os
 import sys
 import time
+import subprocess
+import threading
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -59,26 +61,31 @@ class WorkerThread(QThread):
         self.sistema = None
         self._is_running = True
         self.max_execution_time = 1800
+        self.process = None
 
     def stop(self):
         self._is_running = False
         if self.sistema:
             self.sistema.request_interruption()
+        if self.process:
+            try:
+                self.process.kill()
+            except:
+                pass
 
     def run(self):
         try:
-            # Injetar flag de modo para o sistema
-            if self.modo == "rapido":
-                sys.argv.append("--modo-rapido")
-            elif self.modo == "seguro":
-                sys.argv.append("--modo-seguro")
-            
-            self.sistema = SistemaLimpeza(dry_run=False, verbose=True, quiet=False)
-            
             if self.operation == "limpeza":
+                if self.modo == "rapido":
+                    sys.argv.append("--modo-rapido")
+                elif self.modo == "seguro":
+                    sys.argv.append("--modo-seguro")
+                
+                self.sistema = SistemaLimpeza(dry_run=False, verbose=True, quiet=False)
                 success, message = self.sistema.executar_limpeza(self.update_progress)
+                
             else:
-                success, message = self.sistema.executar_atualizacao(self.update_progress)
+                success, message = self.executar_winget_atualizacao()
             
             if self._is_running:
                 self.operation_completed.emit(success, message)
@@ -90,6 +97,222 @@ class WorkerThread(QThread):
     def update_progress(self, progress: int):
         if self._is_running:
             self.progress_updated.emit(progress)
+    
+    def executar_winget_atualizacao(self):
+        """Executa winget upgrade --all com log em tempo real"""
+        try:
+            # Verificar se winget existe
+            self.log_message.emit("🔍 Verificando winget...", "info")
+            
+            result = subprocess.run(
+                ["winget", "--version"],
+                capture_output=True,
+                text=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            if result.returncode != 0:
+                return False, "Winget não encontrado. Instale o 'App Installer' da Microsoft Store."
+            
+            versao = result.stdout.strip()
+            self.log_message.emit(f"✅ Winget encontrado (versão: {versao})", "success")
+            
+            # Atualizar fontes
+            self.log_message.emit("📦 Atualizando fontes...", "step")
+            self.update_progress(5)
+            
+            subprocess.run(
+                ["winget", "source", "update", "--quiet"],
+                capture_output=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                timeout=120
+            )
+            
+            self.update_progress(10)
+            
+            # Listar atualizações disponíveis
+            self.log_message.emit("🔍 Verificando atualizações disponíveis...", "step")
+            
+            result = subprocess.run(
+                ["winget", "upgrade"],
+                capture_output=True,
+                text=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                timeout=120
+            )
+            
+            output = result.stdout
+            
+            if "No installed package" in output or "No available" in output:
+                self.log_message.emit("ℹ️ Nenhuma atualização disponível", "info")
+                self.update_progress(100)
+                return True, "Nenhuma atualização disponível"
+            
+            # Mostrar lista de programas que serão atualizados
+            self.log_message.emit("📋 Programas que serão atualizados:", "system")
+            
+            linhas = output.split('\n')
+            programas_para_atualizar = []
+            in_table = False
+            
+            for linha in linhas:
+                if 'Name' in linha and 'Id' in linha and 'Version' in linha:
+                    in_table = True
+                    continue
+                if in_table and linha.strip() and '---' not in linha:
+                    # Extrair nome do programa
+                    partes = linha.split()
+                    if len(partes) >= 3:
+                        nome = ' '.join(partes[:-3]) if len(partes) > 3 else partes[0]
+                        versao_atual = partes[-2] if len(partes) >= 2 else "?"
+                        nova_versao = partes[-1] if len(partes) >= 1 else "?"
+                        programas_para_atualizar.append((nome, versao_atual, nova_versao))
+                        self.log_message.emit(f"  📦 {nome} ({versao_atual} → {nova_versao})", "info")
+            
+            if not programas_para_atualizar:
+                # Fallback: tentar extrair de outra forma
+                for linha in linhas:
+                    if '->' in linha:
+                        partes = linha.split('->')
+                        if len(partes) >= 2:
+                            nome = partes[0].strip()
+                            versoes = partes[1].strip().split()
+                            versao_atual = versoes[0] if versoes else "?"
+                            nova_versao = versoes[-1] if versoes else "?"
+                            programas_para_atualizar.append((nome, versao_atual, nova_versao))
+                            self.log_message.emit(f"  📦 {nome} ({versao_atual} → {nova_versao})", "info")
+            
+            count = len(programas_para_atualizar)
+            self.log_message.emit(f"\n📊 Total: {count} programa(s) para atualizar\n", "success")
+            
+            if count == 0:
+                self.update_progress(100)
+                return True, "Nenhuma atualização disponível"
+            
+            # Executar atualização com log em tempo real
+            self.log_message.emit("🚀 Iniciando atualização dos programas...", "step")
+            self.log_message.emit("⏱️ Aguarde... cada programa será baixado e instalado", "warning")
+            self.log_message.emit("=" * 50, "system")
+            
+            self.update_progress(20)
+            
+            # Comando winget
+            comando = [
+                "winget", "upgrade", "--all",
+                "--accept-package-agreements",
+                "--accept-source-agreements",
+                "--disable-interactivity"
+            ]
+            
+            # Iniciar processo
+            self.process = subprocess.Popen(
+                comando,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # Juntar stderr com stdout
+                text=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                bufsize=1  # Line buffered
+            )
+            
+            # Thread para ler e mostrar output em tempo real
+            programa_atual = ""
+            programa_index = 0
+            
+            def monitor_output():
+                nonlocal programa_atual, programa_index
+                for line in iter(self.process.stdout.readline, ''):
+                    if not self._is_running:
+                        break
+                    
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Limitar tamanho para não travar
+                    if len(line) > 300:
+                        line = line[:300] + "..."
+                    
+                    # Destacar diferentes tipos de mensagem
+                    line_lower = line.lower()
+                    
+                    if line.startswith('█') or line.startswith('■') or line.startswith('['):
+                        # Barra de progresso - ignorar para não poluir
+                        pass
+                    elif 'baixando' in line_lower or 'downloading' in line_lower:
+                        self.log_message.emit(f"  📥 {line}", "info")
+                    elif 'instalando' in line_lower or 'installing' in line_lower:
+                        self.log_message.emit(f"  ⚙️ {line}", "step")
+                    elif 'sucesso' in line_lower or 'success' in line_lower or 'concluído' in line_lower:
+                        self.log_message.emit(f"  ✅ {line}", "success")
+                    elif 'erro' in line_lower or 'error' in line_lower or 'falha' in line_lower:
+                        self.log_message.emit(f"  ❌ {line}", "error")
+                    elif 'atualizado' in line_lower or 'upgraded' in line_lower:
+                        self.log_message.emit(f"  ✨ {line}", "success")
+                    elif 'já instalado' in line_lower or 'already installed' in line_lower:
+                        self.log_message.emit(f"  ℹ️ {line}", "info")
+                    elif 'ignorando' in line_lower or 'skipping' in line_lower:
+                        self.log_message.emit(f"  ⏭️ {line}", "warning")
+                    elif 'encontrado' in line_lower or 'found' in line_lower:
+                        if 'encontrado' in line_lower or 'found' in line_lower:
+                            # Extrair nome do programa para mostrar
+                            programa_atual = line
+                            programa_index += 1
+                            self.log_message.emit(f"\n📌 [{programa_index}/{count}] {line}", "system")
+                    else:
+                        # Outros logs - mostrar normalmente
+                        if line and not line.startswith(' ' * 10):  # Evitar linhas muito indentadas
+                            self.log_message.emit(f"  {line}", "info")
+            
+            # Criar e iniciar thread de monitoramento
+            monitor_thread = threading.Thread(target=monitor_output, daemon=True)
+            monitor_thread.start()
+            
+            # Aguardar conclusão SEM TIMEOUT
+            progress = 20
+            incremento = 70 / max(count, 1)  # Distribuir progresso baseado na quantidade
+            
+            while self.process.poll() is None:
+                if not self._is_running:
+                    self.process.kill()
+                    return False, "Atualização cancelada pelo usuário"
+                
+                # Atualizar progresso baseado em quantos programas já foram processados
+                if self.process.poll() is None and programa_index > 0:
+                    novo_progresso = min(20 + (programa_index * incremento), 90)
+                    if novo_progresso > progress:
+                        progress = novo_progresso
+                        self.update_progress(int(progress))
+                
+                time.sleep(1)
+            
+            # Processo terminou
+            returncode = self.process.returncode
+            self.update_progress(100)
+            
+            self.log_message.emit("\n" + "=" * 50, "system")
+            
+            if returncode == 0:
+                self.log_message.emit("✅ Todas as atualizações foram concluídas!", "success")
+                return True, f"{count} programa(s) atualizado(s) com sucesso!"
+            elif returncode == -1 or returncode == 1:
+                self.log_message.emit("⚠️ Atualização concluída (alguns programas podem ter sido ignorados)", "warning")
+                return True, f"Processo finalizado. {count} programa(s) processado(s)"
+            else:
+                self.log_message.emit(f"⚠️ Winget retornou código {returncode}", "warning")
+                return True, f"Processo finalizado. Verifique os logs acima."
+                
+        except subprocess.TimeoutExpired:
+            if self.process:
+                self.process.kill()
+            return False, "Timeout: A atualização demorou demais. Tente novamente."
+        except Exception as e:
+            return False, f"Erro: {str(e)}"
+        finally:
+            self.process = None
 
 
 # ============================================================================
@@ -134,12 +357,11 @@ class CleanCrowUI(QMainWindow):
             }
         """)
 
-        # Ícone
         icone = self.obter_caminho_icone("crowico.png")
         if icone:
             self.setWindowIcon(QIcon(icone))
 
-        self.modo_atual = "normal"  # normal, rapido, seguro
+        self.modo_atual = "normal"
         self.worker_thread = None
         
         self.setup_ui()
@@ -191,7 +413,6 @@ class CleanCrowUI(QMainWindow):
         ajuda_menu.addAction(sobre_action)
 
     def setup_modo_selector(self):
-        """Painel de seleção de modo"""
         modo_frame = QFrame()
         modo_frame.setStyleSheet("""
             background-color: #1a1a1a;
@@ -203,7 +424,6 @@ class CleanCrowUI(QMainWindow):
         modo_layout.setSpacing(10)
         modo_layout.setContentsMargins(10, 8, 10, 8)
         
-        # Label de modo
         label_modo = QLabel("Selecione o modo:")
         label_modo.setStyleSheet("color: #95a5a6; font-weight: bold;")
         modo_layout.addWidget(label_modo)
@@ -212,7 +432,6 @@ class CleanCrowUI(QMainWindow):
         self.btn_rapido = self.criar_botao_modo("⚡ RÁPIDO", "#3498db", self.set_modo_rapido)
         self.btn_seguro = self.criar_botao_modo("🔒 SEGURO", "#27ae60", self.set_modo_seguro)
         
-        # Estilo do botão normal como ativo (padrão)
         self.btn_normal.setStyleSheet(self._estilo_botao_modo("#e74c3c", True))
         
         modo_layout.addWidget(self.btn_normal)
@@ -220,7 +439,6 @@ class CleanCrowUI(QMainWindow):
         modo_layout.addWidget(self.btn_seguro)
         modo_layout.addStretch()
         
-        # Descrição do modo
         self.modo_descricao = QLabel("Completo: limpeza em todos os discos + DISM + CleanMgr")
         self.modo_descricao.setStyleSheet("color: #e74c3c; font-size: 11px; padding: 4px;")
         modo_layout.addWidget(self.modo_descricao)
@@ -446,12 +664,22 @@ class CleanCrowUI(QMainWindow):
         
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
-        self.log_text.setMaximumHeight(200)
+        self.log_text.setMinimumHeight(250)
+        self.log_text.setStyleSheet("""
+            QTextEdit {
+                background-color: #1a1a1a;
+                color: #ffffff;
+                border: 1px solid #333333;
+                border-radius: 5px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 11px;
+            }
+        """)
         self.main_layout.addWidget(self.log_text)
 
     def add_log_message(self, message: str, msg_type: str = "info"):
         timestamp = time.strftime("%H:%M:%S")
-        colors = {"info": "#3498db", "success": "#27ae60", "warning": "#f39c12", "error": "#e74c3c", "system": "#9b59b6"}
+        colors = {"info": "#3498db", "success": "#27ae60", "warning": "#f39c12", "error": "#e74c3c", "system": "#9b59b6", "step": "#e67e22"}
         color = colors.get(msg_type, "#ffffff")
         
         cursor = self.log_text.textCursor()
@@ -469,9 +697,11 @@ class CleanCrowUI(QMainWindow):
         
         self.log_text.setTextCursor(cursor)
         self.log_text.ensureCursorVisible()
+        
+        # Forçar atualização da UI
+        QApplication.processEvents()
 
     def show_message(self, title: str, message: str, icon):
-        """Exibe caixa de diálogo estilizada"""
         msg_box = QMessageBox()
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
@@ -542,7 +772,9 @@ class CleanCrowUI(QMainWindow):
         """)
         
         self.log_text.clear()
-        self.add_log_message("🔄 Iniciando atualização do sistema...", "system")
+        self.add_log_message("🔄 Iniciando atualização do sistema via Winget...", "system")
+        self.add_log_message("📦 Vou atualizar todos os programas instalados", "info")
+        self.add_log_message("⏰ O processo pode levar vários minutos. Aguarde...", "warning")
         
         self.worker_thread = WorkerThread("atualizacao", self.modo_atual)
         self.worker_thread.progress_updated.connect(self.atualizar_progresso)
@@ -595,8 +827,11 @@ class CleanCrowUI(QMainWindow):
     def mostrar_sobre(self):
         QMessageBox.about(self, "Sobre o CleanCrow",
             "CleanCrow - Otimizador de Sistema\n\n"
-            "Versão: 3.0.0\n"
+            "Versão: 3.1.0\n"
             "© 2024 Eduardo Dos Santos Ferreira\n\n"
+            "Funcionalidades:\n"
+            "• Limpeza de sistema (3 modos)\n"
+            "• Atualização de programas via Winget\n\n"
             "Modos de limpeza:\n"
             "• NORMAL: Limpeza completa em todos os discos + DISM + CleanMgr\n"
             "• RÁPIDO: Apenas caches leves e temporários\n"
@@ -605,10 +840,19 @@ class CleanCrowUI(QMainWindow):
 
     def closeEvent(self, event):
         if self.worker_thread and self.worker_thread.isRunning():
-            self.worker_thread.stop()
-            self.worker_thread.quit()
-            self.worker_thread.wait(3000)
-        event.accept()
+            reply = QMessageBox.question(self, 'Confirmar',
+                'Uma operação está em andamento. Deseja cancelar e sair?',
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            
+            if reply == QMessageBox.Yes:
+                self.worker_thread.stop()
+                self.worker_thread.quit()
+                self.worker_thread.wait(5000)
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
 
 if __name__ == "__main__":

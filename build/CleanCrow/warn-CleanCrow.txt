@@ -21,6 +21,6 @@ missing module named posix - imported by os (conditional, optional), shutil (con
 missing module named resource - imported by posix (top-level)
 excluded module named _frozen_importlib - imported by importlib (optional), importlib.abc (optional), zipimport (top-level)
 missing module named _frozen_importlib_external - imported by importlib._bootstrap (delayed), importlib (optional), importlib.abc (optional), zipimport (top-level)
+missing module named limpeza - imported by core (optional)
 missing module named _posixsubprocess - imported by subprocess (conditional)
 missing module named fcntl - imported by subprocess (optional)
-missing module named interface - imported by D:\projetos\cleancrow-legacy\main.py (top-level)

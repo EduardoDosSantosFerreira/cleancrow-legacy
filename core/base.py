@@ -6,12 +6,25 @@ Compartilhado entre todos os modos de limpeza
 import os
 import sys
 import time
-import ctypes
 import subprocess
 import stat
 from pathlib import Path
 from typing import Tuple, Dict, List, Optional
 from enum import Enum
+
+# Tentar importar ctypes com fallback
+try:
+    import ctypes
+    HAS_CTYPES = True
+except ImportError:
+    HAS_CTYPES = False
+
+# Tentar importar string
+try:
+    import string
+    HAS_STRING = True
+except ImportError:
+    HAS_STRING = False
 
 
 # ============================================================================
@@ -30,6 +43,8 @@ class ModoTipo(Enum):
 
 def is_admin() -> bool:
     """Verifica se está rodando como administrador"""
+    if not HAS_CTYPES:
+        return False
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
@@ -44,28 +59,34 @@ def elevar_privilegios() -> None:
     if "--no-admin" in sys.argv:
         return
     
+    if not HAS_CTYPES:
+        return
+    
     print("🔐 Solicitando privilégios de administrador...")
     
     script = os.path.abspath(sys.argv[0])
     params = " ".join([arg for arg in sys.argv[1:] if arg != "--no-admin"])
     
-    ctypes.windll.shell32.ShellExecuteW(
-        None, "runas", sys.executable, f'"{script}" {params}', None, 1
-    )
-    
-    sys.exit(0)
+    try:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", sys.executable, f'"{script}" {params}', None, 1
+        )
+        sys.exit(0)
+    except:
+        pass
 
 
 def executar_comando(comando: str, timeout_segundos: int = 300) -> Tuple[int, str, str]:
     """Executa comando do sistema com timeout"""
     try:
+        flags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
         process = subprocess.Popen(
             comando,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
             shell=True,
-            creationflags=subprocess.CREATE_NO_WINDOW
+            creationflags=flags
         )
         
         try:
@@ -100,7 +121,11 @@ def remover_arquivo(filepath: Path) -> Tuple[bool, int]:
         if not filepath.exists():
             return False, 0
         tamanho = filepath.stat().st_size
-        os.chmod(filepath, stat.S_IWRITE)
+        if sys.platform == 'win32':
+            try:
+                os.chmod(filepath, stat.S_IWRITE)
+            except:
+                pass
         filepath.unlink()
         return True, tamanho
     except:
@@ -175,17 +200,19 @@ def obter_todos_discos() -> List[str]:
     """Detecta TODOS os discos disponíveis no sistema"""
     drives = []
     
-    try:
-        if sys.platform == 'win32':
-            import string
+    if sys.platform != 'win32':
+        return ['C:']
+    
+    if HAS_CTYPES and HAS_STRING:
+        try:
             for letter in string.ascii_uppercase:
                 drive_path = f"{letter}:\\"
                 drive_type = ctypes.windll.kernel32.GetDriveTypeW(drive_path)
-                if drive_type in (2, 3):  # REMOVABLE ou FIXED
+                if drive_type in (2, 3):
                     if os.path.exists(drive_path):
                         drives.append(f"{letter}:")
-    except:
-        pass
+        except:
+            pass
     
     return drives if drives else ['C:']
 
@@ -206,7 +233,7 @@ CACHE_DIRS = ["Cache", "Code Cache", "GPUCache", "Service Worker"]
 
 
 def limpar_cache_navegadores(local_appdata: Path, verbose: bool = False) -> Tuple[int, int]:
-    """Limpa cache de navegadores (comum para todos os modos)"""
+    """Limpa cache de navegadores"""
     total_arquivos = 0
     total_bytes = 0
     
@@ -243,12 +270,12 @@ def limpar_cache_navegadores(local_appdata: Path, verbose: bool = False) -> Tupl
 
 def esvaziar_lixeira_api() -> bool:
     """Esvazia lixeira via API nativa do Windows"""
+    if not HAS_CTYPES:
+        return False
+    
     try:
         shell32 = ctypes.windll.shell32
-        result = shell32.SHEmptyRecycleBinW(
-            None, None, 
-            0x00000001 | 0x00000002  # SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI
-        )
+        result = shell32.SHEmptyRecycleBinW(None, None, 0x00000001 | 0x00000002)
         return result == 0
     except:
         return False
