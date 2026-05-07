@@ -7,7 +7,7 @@
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   color: var(--text-color);
   background-color: var(--primary-color);
   overflow-x: hidden;
@@ -27,7 +27,7 @@ body {
 }
 
 .navbar-brand {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-weight: 700;
   font-size: 1.8rem;
   color: var(--accent-color) !important;
@@ -41,7 +41,7 @@ body {
   color: var(--muted-color) !important;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 1.1rem;
   letter-spacing: 1px;
 }
@@ -60,7 +60,7 @@ body {
   border: none;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
 }
 
 .btn-download:hover {
@@ -71,7 +71,9 @@ body {
 }
 
 .hero {
-  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+    url("https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80");
   background-size: cover;
   background-position: center;
   color: white;
@@ -82,7 +84,7 @@ body {
 }
 
 .hero-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 4rem;
   font-weight: 700;
   margin-bottom: 20px;
@@ -115,7 +117,7 @@ body {
 }
 
 .section-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 2.8rem;
   font-weight: 700;
   color: var(--accent-color);
@@ -126,7 +128,7 @@ body {
 }
 
 .section-title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -15px;
   left: 50%;
@@ -158,7 +160,7 @@ body {
 }
 
 .feature-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 15px;
@@ -182,8 +184,8 @@ body {
 }
 
 .feature-list li::before {
-  content: '\f00c';
-  font-family: 'Font Awesome 5 Free';
+  content: "\f00c";
+  font-family: "Font Awesome 5 Free";
   font-weight: 900;
   color: var(--accent-color);
   margin-right: 10px;
@@ -245,7 +247,9 @@ body {
 }
 
 .cta-section {
-  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+    url("https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80");
   background-size: cover;
   background-position: center;
   color: white;
@@ -256,7 +260,7 @@ body {
 }
 
 .cta-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 20px;
@@ -297,7 +301,7 @@ body {
   color: var(--muted-color);
   transition: all 0.3s ease;
   text-decoration: none;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -338,7 +342,7 @@ body {
 .badge-crow {
   background-color: var(--accent-color);
   color: white;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-weight: 600;
   padding: 5px 15px;
   border-radius: 4px;
@@ -414,7 +418,7 @@ body {
 }
 
 .badge-optimized {
-  background: rgba(255, 107, 107, 0.10);
+  background: rgba(255, 107, 107, 0.1);
   color: var(--red-light);
   padding: 5px 12px;
   border-radius: 20px;
@@ -424,7 +428,7 @@ body {
 }
 
 .hero-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
   font-size: 3.5rem;
   font-weight: 700;
   line-height: 1.2;
@@ -439,7 +443,7 @@ body {
 }
 
 .hero-title-highlight::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -10px;
   right: -45px;
@@ -490,7 +494,7 @@ body {
   padding: 12px 20px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 0, 0, 0.10);
+  border-bottom: 1px solid rgba(255, 0, 0, 0.1);
 }
 
 .window-buttons {
@@ -589,16 +593,18 @@ body {
 }
 
 .progress::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   animation: progressShine 2s infinite;
 }
 
@@ -997,7 +1003,7 @@ body {
   margin-left: 15px;
   font-size: 0.85rem;
   color: #aaa;
-  font-family: 'Consolas', monospace;
+  font-family: "Consolas", monospace;
 }
 
 .window-content {
@@ -1034,13 +1040,15 @@ body {
   gap: 8px;
 }
 
-.current-operation, .operations-count {
+.current-operation,
+.operations-count {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
 }
 
-.operation-label, .count-label {
+.operation-label,
+.count-label {
   color: #aaa;
 }
 
@@ -1166,13 +1174,18 @@ body {
 }
 
 .progress-bar-fill::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   animation: progressShine 2s infinite;
 }
 
@@ -1208,7 +1221,7 @@ body {
   max-height: 150px;
   overflow-y: auto;
   padding: 10px;
-  font-family: 'Consolas', monospace;
+  font-family: "Consolas", monospace;
   font-size: 0.8rem;
   background: #111;
 }
@@ -1280,11 +1293,11 @@ body {
     margin-bottom: 40px;
     transform: none;
   }
-  
+
   .dashboard-window {
     transform: none;
   }
-  
+
   .hero-dashboard:hover .dashboard-window {
     transform: none;
   }
@@ -1294,22 +1307,22 @@ body {
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .action-btn {
     padding: 12px;
   }
-  
+
   .progress-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 5px;
   }
-  
+
   .progress-stats {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .log-content {
     max-height: 120px;
   }
