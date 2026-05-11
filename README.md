@@ -1,4 +1,3 @@
-```markdown
 # 🐦‍⬛ CleanCrow (Legacy)
 
 CleanCrow is a desktop application for **Windows system maintenance, cleaning, and optimization**, developed in Python with a PyQt5 graphical interface.
@@ -175,15 +174,3 @@ Elevation is handled automatically at the start of execution.
 ## 📄 License
 
 Distributed under the GNU GPL v3.0 license.
-```
-
-## Translation Notes:
-
-- **Preserved all formatting** - Headers, lists, code blocks, and structure remain intact
-- **Technical terms** - Kept consistent (e.g., "winget", "PyQt5", "PyInstaller")
-- **File names** - Kept original Portuguese filenames (`interface.py`, `limpeza_sistema.py`) since they reference actual files
-- **IDs removed** - Removed the `id="..."` attributes that were present in the original
-- **Natural flow** - Translated idioms naturally ("Camada de Lógica" → "Logic Layer")
-- **Code comments** - Would remain in Portuguese if they exist in the actual code files
-
-The translation is professional, technically accurate, and ready for an international audience! 🚀
