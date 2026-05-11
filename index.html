@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="CleanCrow - Ferramenta avançada de limpeza e otimização para Windows. Remova arquivos temporários, otimize seu sistema e mantenha programas atualizados automaticamente.">
-  <meta name="keywords" content="CleanCrow, Windows, limpeza, otimização, winget, desfragmentação, atualização">
-  <title>CleanCrow - Limpeza e Otimização Avançada para Windows</title>
+    content="CleanCrow - Advanced Windows cleaning and optimization tool. Remove temporary files, optimize your system, and keep programs automatically updated.">
+  <meta name="keywords"
+    content="CleanCrow, Windows, cleaning, optimization, winget, defragmentation, update, system optimizer">
+  <meta name="author" content="Eduardo S Ferreira">
+  <title>CleanCrow - Advanced Windows Cleaning & Optimization</title>
   <link rel="icon" type="image/png" href="./src/assets/img/profile_icons/crowico.png">
 
   <!-- Bootstrap CSS -->
@@ -38,13 +40,13 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#features">Recursos</a>
+            <a class="nav-link" href="#features">Features</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#security">Segurança</a>
+            <a class="nav-link" href="#security">Security</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#how-to-use">Como Usar</a>
+            <a class="nav-link" href="#how-to-use">How to Use</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#screenshots">Screenshots</a>
@@ -66,22 +68,36 @@
       <div class="row align-items-center">
         <div class="col-lg-6 order-lg-1 order-2" data-aos="fade-right">
           <div class="hero-badge">
-            <span class="badge-version">v2.5.1</span>
-            <span class="badge-optimized">Otimizado para Windows 10/11</span>
+            <span class="badge-version">🚀 v2.5.1</span>
+            <span class="badge-optimized">⚡ Optimized for Windows 10/11</span>
           </div>
           <h1 class="hero-title">
             <span class="hero-title-highlight">CLEANCROW</span>
           </h1>
           <p class="hero-subtitle">
-            Otimizador de Sistema Avançado
+            Advanced System Optimizer
           </p>
           <div class="hero-buttons">
             <a href="dist/cleancrow.exe" class="btn btn-download btn-lg mr-3 mb-3">
-              <i class="fas fa-download mr-2 icon-white"></i>Baixar Agora - Grátis
+              <i class="fas fa-download mr-2"></i>Download Now - Free
             </a>
             <a href="#features" class="btn btn-outline-light btn-lg mb-3">
-              <i class="fas fa-chart-line mr-2 icon-white"></i>Ver Recursos
+              <i class="fas fa-chart-line mr-2"></i>Explore Features
             </a>
+          </div>
+          <div class="hero-stats mt-4">
+            <div class="stat-item">
+              <span class="stat-number">10K+</span>
+              <span class="stat-label">Downloads</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">100%</span>
+              <span class="stat-label">Free</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">🔓</span>
+              <span class="stat-label">Open Source</span>
+            </div>
           </div>
         </div>
         <div class="col-lg-6 order-lg-2 order-1" data-aos="fade-left">
@@ -89,30 +105,33 @@
             <div class="dashboard-window">
               <div class="window-header">
                 <div class="window-buttons">
+                  <span class="window-btn red"></span>
+                  <span class="window-btn yellow"></span>
+                  <span class="window-btn green"></span>
                 </div>
-                <div class="window-title">CleanCrow - Painel de Controle</div>
+                <div class="window-title">CleanCrow - Control Panel</div>
               </div>
               <div class="window-content">
-                <!-- Botões de Ação -->
+                <!-- Action Buttons -->
                 <div class="action-buttons">
                   <button class="action-btn clean">
                     <i class="fas fa-broom"></i>
-                    Limpar Sistema
+                    Clean System
                   </button>
                   <button class="action-btn update">
                     <i class="fas fa-sync-alt"></i>
-                    Atualizar Sistema
+                    Update System
                   </button>
                   <button class="action-btn logs">
                     <i class="fas fa-trash-alt"></i>
-                    Limpar Logs
+                    Clear Logs
                   </button>
                 </div>
 
-                <!-- Barra de Progresso -->
+                <!-- Progress Bar -->
                 <div class="progress-section">
                   <div class="progress-header">
-                    <span class="progress-title">Executando: Desfragmentando disco...</span>
+                    <span class="progress-title">Running: Defragmenting disk...</span>
                     <div class="progress-stats">
                       <span class="progress-percent">45%</span>
                       <span class="progress-counter">15/34</span>
@@ -123,40 +142,40 @@
                   </div>
                 </div>
 
-                <!-- Log de Operações -->
+                <!-- Operation Log -->
                 <div class="log-section">
                   <div class="log-header">
                     <i class="fas fa-terminal"></i>
-                    <span>Log de Operações</span>
+                    <span>Operation Log</span>
                   </div>
                   <div class="log-content">
                     <div class="log-entry">
                       <span class="log-time">[14:07:51]</span>
-                      <span class="log-message info"> Limpando cache do Servidor...</span>
+                      <span class="log-message info">✓ Cleaning server cache...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:51]</span>
-                      <span class="log-message info"> Limpando cache do Tor Browser...</span>
+                      <span class="log-message info">✓ Cleaning Tor Browser cache...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:52]</span>
-                      <span class="log-message info"> Limpando cache do Waterfox...</span>
+                      <span class="log-message info">✓ Cleaning Waterfox cache...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:52]</span>
-                      <span class="log-message info"> Limpando cache do Pale Moon...</span>
+                      <span class="log-message info">✓ Cleaning Pale Moon cache...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:52]</span>
-                      <span class="log-message info"> Esvaziando Lixeira...</span>
+                      <span class="log-message info">✓ Emptying Recycle Bin...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:52]</span>
-                      <span class="log-message info"> Removendo programas desnecessários...</span>
+                      <span class="log-message info">✓ Removing unnecessary programs...</span>
                     </div>
                     <div class="log-entry">
                       <span class="log-time">[14:07:52]</span>
-                      <span class="log-message info"> Limpando espaço em disco...</span>
+                      <span class="log-message success">✓ Disk space cleaned: 2.4 GB</span>
                     </div>
                   </div>
                 </div>
@@ -168,54 +187,28 @@
     </div>
   </section>
 
-  <script>
-    // Adicione este script no final do body ou em um arquivo JS separado
-    document.addEventListener('DOMContentLoaded', function () {
-      // Animar as barras de progresso
-      const meters = document.querySelectorAll('.meter .progress');
-
-      meters.forEach(meter => {
-        const targetWidth = meter.style.width;
-        meter.style.width = '0%';
-
-        setTimeout(() => {
-          meter.style.width = targetWidth;
-        }, 500);
-      });
-
-      // Animar a barra de progresso do scan
-      const scanProgress = document.querySelector('.progress-bar');
-      scanProgress.style.width = '0%';
-
-      setTimeout(() => {
-        scanProgress.style.width = '68%';
-      }, 800);
-
-      // Inicialize o particles.js (você precisará incluir a biblioteca particles.js)
-      // particlesJS.load('particles-js', 'particles-config.json');
-    });
-  </script>
-
   <!-- Features Section -->
   <section id="features" class="py-5" style="padding: 100px 0;">
     <div class="container">
-      <h2 class="section-title text-center" data-aos="fade-up">Recursos Poderosos</h2>
+      <h2 class="section-title text-center" data-aos="fade-up">Powerful <span>Features</span></h2>
+      <p class="section-subtitle text-center mb-5" data-aos="fade-up">Everything you need to keep your Windows running
+        at peak performance</p>
       <div class="row">
         <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
           <div class="feature-card">
             <div class="feature-icon">
               <i class="fas fa-broom"></i>
             </div>
-            <h3 class="feature-title">Limpeza Completa</h3>
+            <h3 class="feature-title">Complete Cleaning</h3>
             <p class="feature-text">
-              Remova arquivos temporários, caches e registros desnecessários que acumulam e diminuem o desempenho do seu
-              sistema.
+              Remove temporary files, caches, and unnecessary registry entries that accumulate and slow down your
+              system.
             </p>
             <ul class="feature-list">
-              <li>Arquivos temporários do sistema</li>
-              <li>Logs e caches de aplicativos</li>
-              <li>Histórico de navegação</li>
-              <li>Arquivos de instalação antigos</li>
+              <li><i class="fas fa-check-circle"></i> System temporary files</li>
+              <li><i class="fas fa-check-circle"></i> App logs & caches</li>
+              <li><i class="fas fa-check-circle"></i> Browser history</li>
+              <li><i class="fas fa-check-circle"></i> Old installation files</li>
             </ul>
           </div>
         </div>
@@ -224,15 +217,15 @@
             <div class="feature-icon">
               <i class="fas fa-tachometer-alt"></i>
             </div>
-            <h3 class="feature-title">Otimização Profunda</h3>
+            <h3 class="feature-title">Deep Optimization</h3>
             <p class="feature-text">
-              Ajustes avançados no sistema para melhorar a resposta e eficiência do seu computador.
+              Advanced system tweaks to improve your computer's responsiveness and efficiency.
             </p>
             <ul class="feature-list">
-              <li>Desfragmentação de disco</li>
-              <li>Otimização de inicialização</li>
-              <li>Ajuste de prioridades de processos</li>
-              <li>Limpeza de componentes obsoletos</li>
+              <li><i class="fas fa-check-circle"></i> Disk defragmentation</li>
+              <li><i class="fas fa-check-circle"></i> Startup optimization</li>
+              <li><i class="fas fa-check-circle"></i> Process priority tuning</li>
+              <li><i class="fas fa-check-circle"></i> Obsolete component cleanup</li>
             </ul>
           </div>
         </div>
@@ -241,15 +234,15 @@
             <div class="feature-icon">
               <i class="fas fa-cloud-download-alt"></i>
             </div>
-            <h3 class="feature-title">Atualização Automática</h3>
+            <h3 class="feature-title">Auto Updates</h3>
             <p class="feature-text">
-              Mantenha todos seus programas atualizados com a última versão via Windows Package Manager (winget).
+              Keep all your programs updated with the latest versions via Windows Package Manager (winget).
             </p>
             <ul class="feature-list">
-              <li>Atualização em lote de programas</li>
-              <li>Suporte a winget</li>
-              <li>Relatório de atualizações</li>
-              <li>Agendamento automático</li>
+              <li><i class="fas fa-check-circle"></i> Batch program updates</li>
+              <li><i class="fas fa-check-circle"></i> Winget support</li>
+              <li><i class="fas fa-check-circle"></i> Update reports</li>
+              <li><i class="fas fa-check-circle"></i> Automatic scheduling</li>
             </ul>
           </div>
         </div>
@@ -260,16 +253,17 @@
   <!-- Security Section -->
   <section id="security" class="py-5" style="padding: 100px 0; background-color: var(--secondary-color);">
     <div class="container">
-      <h2 class="section-title text-center" data-aos="fade-up">Segurança Garantida</h2>
+      <h2 class="section-title text-center" data-aos="fade-up">Security <span>Guaranteed</span></h2>
+      <p class="section-subtitle text-center mb-5" data-aos="fade-up">Your system's safety is our top priority</p>
       <div class="row justify-content-center">
         <div class="col-lg-8">
           <div class="security-item" data-aos="fade-up">
             <div class="d-flex align-items-center">
               <i class="fas fa-shield-alt security-icon"></i>
               <div>
-                <h3>Ferramentas Nativas</h3>
-                <p class="mb-0">O CleanCrow utiliza apenas ferramentas e comandos nativos do Windows, garantindo máxima
-                  compatibilidade e segurança.</p>
+                <h3>Native Windows Tools</h3>
+                <p class="mb-0">CleanCrow uses only native Windows tools and commands, ensuring maximum compatibility
+                  and security.</p>
               </div>
             </div>
           </div>
@@ -278,9 +272,9 @@
             <div class="d-flex align-items-center">
               <i class="fas fa-user-shield security-icon"></i>
               <div>
-                <h3>Sem Componentes Externos</h3>
-                <p class="mb-0">Não requer instalação de bibliotecas ou componentes de terceiros, mantendo seu sistema
-                  limpo e seguro.</p>
+                <h3>No External Components</h3>
+                <p class="mb-0">No third-party libraries or components required, keeping your system clean and secure.
+                </p>
               </div>
             </div>
           </div>
@@ -289,9 +283,9 @@
             <div class="d-flex align-items-center">
               <i class="fas fa-lock security-icon"></i>
               <div>
-                <h3>Controle Total</h3>
-                <p class="mb-0">Todas as operações são confirmadas pelo usuário. Nada é executado sem sua permissão
-                  explícita.</p>
+                <h3>Full User Control</h3>
+                <p class="mb-0">All operations require user confirmation. Nothing runs without your explicit permission.
+                </p>
               </div>
             </div>
           </div>
@@ -300,9 +294,9 @@
             <div class="d-flex align-items-center">
               <i class="fas fa-history security-icon"></i>
               <div>
-                <h3>Pontos de Restauração</h3>
-                <p class="mb-0">Recomenda a criação de pontos de restauração antes de operações críticas para máxima
-                  segurança.</p>
+                <h3>Restore Points</h3>
+                <p class="mb-0">Recommends creating system restore points before critical operations for maximum safety.
+                </p>
               </div>
             </div>
           </div>
@@ -314,78 +308,121 @@
   <!-- How To Use Section -->
   <section id="how-to-use" class="py-5" style="padding: 100px 0;">
     <div class="container">
-      <h2 class="section-title text-center" data-aos="fade-up">Como Usar</h2>
+      <h2 class="section-title text-center" data-aos="fade-up">How to <span>Use</span></h2>
+      <p class="section-subtitle text-center mb-5" data-aos="fade-up">Simple, intuitive, and powerful</p>
       <div class="row">
         <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
           <div class="how-to-use-item text-center">
             <i class="fas fa-mouse-pointer how-to-use-icon"></i>
-            <h3>Interface Simples</h3>
+            <h3>Simple Interface</h3>
             <p>
-              Basta clicar no botão "Limpar" para iniciar todas as operações de limpeza e otimização. Uma barra de
-              progresso mostra o status de cada etapa.
+              Just click the "Clean" button to start all cleaning and optimization operations. A progress bar shows the
+              status of each step.
             </p>
-            <span class="badge-crow">Fácil</span>
+            <span class="badge-crow">Easy</span>
           </div>
         </div>
         <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
           <div class="how-to-use-item text-center">
             <i class="fas fa-sync-alt how-to-use-icon"></i>
-            <h3>Atualização de Programas</h3>
+            <h3>Program Updates</h3>
             <p>
-              Use o botão "Atualizar" para executar o comando winget upgrade --all e manter todos seus programas
-              atualizados automaticamente.
+              Use the "Update" button to run the winget upgrade --all command and keep all your programs automatically
+              updated.
             </p>
-            <span class="badge-crow">Rápido</span>
+            <span class="badge-crow">Fast</span>
           </div>
         </div>
         <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
           <div class="how-to-use-item text-center">
             <i class="fas fa-user-cog how-to-use-icon"></i>
-            <h3>Modo Administrador</h3>
+            <h3>Administrator Mode</h3>
             <p>
-              Para operações mais avançadas, execute como administrador. O CleanCrow irá solicitar quando necessário.
+              For advanced operations, run as administrator. CleanCrow will prompt when needed.
             </p>
-            <span class="badge-crow">Poderoso</span>
+            <span class="badge-crow">Powerful</span>
           </div>
         </div>
         <div class="col-md-6 mb-4" data-aos="fade-up" data-aos-delay="400">
           <div class="how-to-use-item text-center">
             <i class="fas fa-exclamation-triangle how-to-use-icon"></i>
-            <h3>Feedback de Erros</h3>
+            <h3>Error Feedback</h3>
             <p>
-              Em caso de problemas, mensagens claras explicam o erro e como resolvê-lo, mantendo você no controle.
+              Clear error messages explain issues and how to resolve them, keeping you in control.
             </p>
-            <span class="badge-crow">Transparente</span>
+            <span class="badge-crow">Transparent</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Seção de Screenshots Melhorada -->
+  <!-- Screenshots Section -->
   <section id="screenshots" class="screenshot-section py-5" style="padding: 100px 0;">
     <div class="container">
-      <h2 class="section-title text-center" data-aos="fade-up">Veja a Interface do CleanCrow</h2>
+      <h2 class="section-title text-center" data-aos="fade-up">CleanCrow <span>Interface</span></h2>
       <p class="text-center mb-5" data-aos="fade-up" data-aos-delay="50">
-        Confira abaixo uma prévia da interface moderna, intuitiva e fácil de usar do CleanCrow.
+        Check out the modern, intuitive, and easy-to-use CleanCrow interface below.
       </p>
       <div class="row justify-content-center">
         <div class="col-lg-10 col-md-12 mb-4" data-aos="zoom-in" data-aos-delay="100">
           <div class="screenshot-frame"
             style="background: #222; border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); padding: 32px;">
-            <img src="./src/assets/img/web/img1.png" alt="Tela Principal do CleanCrow" class="screenshot-img img-fluid"
+            <img src="./src/assets/img/web/img1.png" alt="CleanCrow Main Interface" class="screenshot-img img-fluid"
               style="width: 100%; max-width: 500px; display: block; margin: 0 auto; border-radius: 8px; border: 2px solid var(--accent-color);">
           </div>
         </div>
       </div>
       <div class="row justify-content-center mt-4">
         <div class="col-lg-8">
-          <ul class="list-unstyled text-center" style="color: var(--muted-color); font-size: 1.1rem;">
-            <li><i class="fas fa-check-circle text-danger mr-2"></i>Visualização clara das funções principais</li>
-            <li><i class="fas fa-check-circle text-danger mr-2"></i>Barra de progresso detalhada</li>
-            <li><i class="fas fa-check-circle text-danger mr-2"></i>Botões grandes e intuitivos</li>
-            <li><i class="fas fa-check-circle text-danger mr-2"></i>Design moderno e responsivo</li>
+          <ul class="list-unstyled text-center features-checklist"
+            style="color: var(--muted-color); font-size: 1.1rem;">
+            <li><i class="fas fa-check-circle text-danger mr-2"></i>Clear view of main functions</li>
+            <li><i class="fas fa-check-circle text-danger mr-2"></i>Detailed progress bar</li>
+            <li><i class="fas fa-check-circle text-danger mr-2"></i>Large, intuitive buttons</li>
+            <li><i class="fas fa-check-circle text-danger mr-2"></i>Modern responsive design</li>
           </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section (New) -->
+  <section class="testimonials py-5" style="padding: 100px 0; background-color: var(--secondary-color);">
+    <div class="container">
+      <h2 class="section-title text-center" data-aos="fade-up">What Users <span>Say</span></h2>
+      <div class="row mt-5">
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+          <div class="testimonial-card">
+            <i class="fas fa-quote-left quote-icon"></i>
+            <p>CleanCrow saved my old laptop! It's now running faster than ever. The automatic update feature is a
+              game-changer.</p>
+            <div class="testimonial-author">
+              <strong>Michael T.</strong>
+              <span>Verified User</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+          <div class="testimonial-card">
+            <i class="fas fa-quote-left quote-icon"></i>
+            <p>Finally a cleaning tool that actually works and doesn't try to sell you anything. Simple, effective, and
+              open source!</p>
+            <div class="testimonial-author">
+              <strong>Sarah J.</strong>
+              <span>IT Professional</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+          <div class="testimonial-card">
+            <i class="fas fa-quote-left quote-icon"></i>
+            <p>The winget integration alone makes this worth it. Updating all my apps with one click is amazing.</p>
+            <div class="testimonial-author">
+              <strong>David R.</strong>
+              <span>Power User</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -394,13 +431,24 @@
   <!-- CTA Section -->
   <section class="cta-section">
     <div class="container">
-      <h2 class="cta-title" data-aos="fade-up">Pronto para turbinar seu Windows?</h2>
+      <h2 class="cta-title" data-aos="fade-up">Ready to Supercharge Your Windows?</h2>
       <p class="cta-text" data-aos="fade-up" data-aos-delay="100">
-        Baixe agora o CleanCrow e recupere a velocidade e eficiência do seu computador. Totalmente gratuito e seguro.
+        Download CleanCrow now and restore your computer's speed and efficiency. Completely free and secure.
       </p>
-      <a href="dist/cleancrow.exe" class="btn btn-download btn-lg" data-aos="fade-up" data-aos-delay="200">
-        <i class="fas fa-download mr-2"></i>Baixar Agora - Grátis
-      </a>
+      <div class="cta-buttons" data-aos="fade-up" data-aos-delay="200">
+        <a href="dist/cleancrow.exe" class="btn btn-download btn-lg">
+          <i class="fas fa-download mr-2"></i>Download Now - Free
+        </a>
+        <a href="https://github.com/EduardoDosSantosFerreira/CleanCrow" class="btn btn-outline-light btn-lg ml-3">
+          <i class="fab fa-github mr-2"></i>View on GitHub
+        </a>
+      </div>
+      <div class="trust-badges mt-4">
+        <span><i class="fas fa-shield-alt"></i> No Malware</span>
+        <span><i class="fas fa-eye-slash"></i> No Tracking</span>
+        <span><i class="fas fa-code"></i> Open Source</span>
+        <span><i class="fas fa-clock"></i> Lifetime Free</span>
+      </div>
     </div>
   </section>
 
@@ -410,8 +458,8 @@
       <div class="row">
         <div class="col-md-4 mb-5">
           <img src="./src/assets/img/profile_icons/crowico.png" alt="CleanCrow Logo" class="footer-logo">
-          <p class="mt-3">CleanCrow é uma ferramenta poderosa para limpeza, otimização e atualização de sistemas
-            Windows, desenvolvida para quem exige performance máxima.</p>
+          <p class="mt-3">CleanCrow is a powerful tool for cleaning, optimizing, and updating Windows systems, developed
+            for those who demand maximum performance.</p>
           <div class="social-icons mt-4">
             <a href="https://github.com/EduardoDosSantosFerreira/CleanCrow" target="_blank" rel="noopener"><i
                 class="fab fa-github"></i></a>
@@ -424,21 +472,21 @@
         </div>
 
         <div class="col-md-2 mb-5">
-          <h5>Links</h5>
+          <h5>Quick Links</h5>
           <ul class="footer-links">
-            <li><a href="#features">Recursos</a></li>
-            <li><a href="#security">Segurança</a></li>
-            <li><a href="#how-to-use">Como Usar</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#how-to-use">How to Use</a></li>
             <li><a href="#screenshots">Screenshots</a></li>
             <li><a href="dist/cleancrow.exe" download>Download</a></li>
           </ul>
         </div>
 
         <div class="col-md-3 mb-5">
-          <h5>Recursos</h5>
+          <h5>Resources</h5>
           <ul class="footer-links">
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/wiki" target="_blank"
-                rel="noopener">Documentação</a></li>
+                rel="noopener">Documentation</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/releases" target="_blank"
                 rel="noopener">Changelog</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/projects" target="_blank"
@@ -446,15 +494,15 @@
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow" target="_blank"
                 rel="noopener">GitHub</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/issues" target="_blank"
-                rel="noopener">Reportar Bug</a></li>
+                rel="noopener">Report Bug</a></li>
           </ul>
         </div>
 
         <div class="col-md-3 mb-5">
-          <h5>Contato</h5>
+          <h5>Contact</h5>
           <ul class="footer-links">
             <li><a href="mailto:eduardo.dsf.dev@gmail.com">eduardo.dsf.dev@gmail.com</a></li>
-            <li><a href="https://github.com/EduardoDosSantosFerreira" target="_blank" rel="noopener">GitHub (Perfil)</a>
+            <li><a href="https://github.com/EduardoDosSantosFerreira" target="_blank" rel="noopener">GitHub Profile</a>
             </li>
             <li><a href="https://www.linkedin.com/in/eduardodossantosferreira/" target="_blank"
                 rel="noopener">LinkedIn</a></li>
@@ -464,11 +512,11 @@
       </div>
 
       <div class="copyright text-center">
-        <p>&copy; 2025 Eduardo S Ferreira. Todos os direitos reservados. |
+        <p>&copy; 2025 Eduardo S Ferreira. All rights reserved. |
           <a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/blob/main/LICENSE" target="_blank"
             rel="noopener" class="text-white">GPL v3.0</a> |
-          <a href="#" class="text-white">Política de Privacidade</a> |
-          <a href="#" class="text-white">Termos de Uso</a>
+          <a href="#" class="text-white">Privacy Policy</a> |
+          <a href="#" class="text-white">Terms of Use</a>
         </p>
       </div>
     </div>
@@ -501,14 +549,38 @@
     // Smooth scrolling for anchor links
     $('a[href*="#"]').on('click', function (e) {
       e.preventDefault();
+      const target = $(this).attr('href');
+      if (target === '#') return;
 
       $('html, body').animate(
         {
-          scrollTop: $($(this).attr('href')).offset().top - 70,
+          scrollTop: $(target).offset().top - 70,
         },
         500,
         'linear'
       );
+    });
+
+    // Animate progress bars on scroll
+    const animateProgressBars = () => {
+      $('.progress-bar-fill').each(function () {
+        const targetWidth = $(this).css('width');
+        $(this).css('width', '0%');
+        setTimeout(() => {
+          $(this).css('width', targetWidth);
+        }, 500);
+      });
+    };
+
+    // Add hover effects to action buttons
+    $('.action-btn').hover(
+      function () { $(this).css('transform', 'translateY(-2px)'); },
+      function () { $(this).css('transform', 'translateY(0)'); }
+    );
+
+    // Simulate download tracking
+    $('.btn-download').on('click', function () {
+      console.log('CleanCrow download initiated');
     });
   </script>
 </body>

@@ -1,62 +1,63 @@
+```markdown
 # 🐦‍⬛ CleanCrow (Legacy)
 
-CleanCrow é uma aplicação desktop para **manutenção, limpeza e otimização de sistemas Windows**, desenvolvida em Python com interface gráfica em PyQt5.
+CleanCrow is a desktop application for **Windows system maintenance, cleaning, and optimization**, developed in Python with a PyQt5 graphical interface.
 
-O software automatiza tarefas comuns de manutenção, removendo arquivos desnecessários, executando rotinas de limpeza e auxiliando no gerenciamento de pacotes instalados no sistema.
-
----
-
-## ⚙️ Funcionalidades
-
-- 🧹 **Limpeza de arquivos temporários**
-  - Diretórios de `%TEMP%`
-  - Cache do sistema
-  - Arquivos residuais comuns
-
-- 🗑️ **Remoção de arquivos desnecessários**
-  - Arquivos de log antigos
-  - Resíduos de aplicações
-
-- ⚡ **Otimizações básicas do sistema**
-  - Execução de comandos nativos do Windows
-  - Limpeza de componentes acumulados
-
-- 📦 **Integração com winget**
-  - Instalação e atualização de pacotes
-  - Automação de comandos via CLI
-
-- 📊 **Execução com feedback em tempo real**
-  - Barra de progresso
-  - Logs detalhados por operação
-
-- 🔐 **Elevação de privilégios automática**
-  - Execução como administrador quando necessário
+The software automates common maintenance tasks, removing unnecessary files, executing cleanup routines, and assisting in the management of installed packages on the system.
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## ⚙️ Features
 
-O projeto segue uma separação simples entre interface e lógica:
+- 🧹 **Temporary files cleanup**
+  - `%TEMP%` directories
+  - System cache
+  - Common residual files
 
-- **Camada de Interface (`interface.py`)**
-  - Construída com PyQt5
-  - Responsável pela interação com o usuário
-  - Atualização de logs e progresso
+- 🗑️ **Removal of unnecessary files**
+  - Old log files
+  - Application residues
 
-- **Camada de Lógica (`limpeza_sistema.py`)**
-  - Execução das rotinas de limpeza
-  - Chamadas ao sistema operacional
-  - Manipulação de arquivos e diretórios
+- ⚡ **Basic system optimizations**
+  - Execution of native Windows commands
+  - Cleanup of accumulated components
 
-- **Ponto de Entrada (`main.py`)**
-  - Inicialização da aplicação
-  - Controle de execução e permissões
+- 📦 **Integration with winget**
+  - Package installation and updates
+  - CLI command automation
+
+- 📊 **Real-time feedback execution**
+  - Progress bar
+  - Detailed operation logs
+
+- 🔐 **Automatic privilege elevation**
+  - Runs as administrator when needed
 
 ---
 
-## 📁 Estrutura de Diretórios
+## 🏗️ Project Architecture
 
-```id="c8o1sl"
+The project follows a simple separation between interface and logic:
+
+- **Interface Layer (`interface.py`)**
+  - Built with PyQt5
+  - Responsible for user interaction
+  - Log and progress updates
+
+- **Logic Layer (`limpeza_sistema.py`)**
+  - Execution of cleanup routines
+  - Operating system calls
+  - File and directory manipulation
+
+- **Entry Point (`main.py`)**
+  - Application initialization
+  - Execution and permission control
+
+---
+
+## 📁 Directory Structure
+
+```
 cleancrow-legacy/
 │
 ├── main.py
@@ -75,102 +76,114 @@ cleancrow-legacy/
 
 ---
 
-## 🚀 Execução
+## 🚀 Execution
 
-### Pré-requisitos
+### Prerequisites
 
-- Python 3.10 ou superior
-- Sistema operacional Windows
-- Pip instalado
+- Python 3.10 or higher
+- Windows operating system
+- Pip installed
 
-### Instalação de dependências
+### Installing Dependencies
 
-```bash id="y2n0bb"
+```bash
 pip install PyQt5
 ```
 
-### Execução
+### Running the Application
 
-```bash id="x2ktm4"
+```bash
 python main.py
 ```
 
-> O software solicita elevação de privilégios automaticamente quando necessário.
+> The software automatically requests privilege elevation when necessary.
 
 ---
 
-## 🏗️ Build do Executável
+## 🏗️ Building the Executable
 
-### Utilizando PyInstaller
+### Using PyInstaller
 
-```bash id="5k2w7s"
+```bash
 pyinstaller --onefile limpeza_sistema.py
 ```
 
-Ou com o arquivo de configuração:
+Or with the configuration file:
 
-```bash id="9z0p2u"
+```bash
 pyinstaller cleancrow.spec
 ```
 
-Saída:
+Output:
 
-```id="v4r2dx"
+```
 /dist/cleancrow.exe
 ```
 
 ---
 
-## 🔐 Permissões e Segurança
+## 🔐 Permissions and Security
 
-O software executa operações que exigem privilégios elevados, incluindo:
+The software performs operations that require elevated privileges, including:
 
-- Acesso a diretórios protegidos do sistema
-- Exclusão de arquivos temporários globais
-- Execução de comandos administrativos
+- Access to protected system directories
+- Deletion of global temporary files
+- Execution of administrative commands
 
-A elevação é tratada automaticamente no início da execução.
-
----
-
-## ⚠️ Limitações
-
-- Compatível apenas com Windows
-- Dependência de ferramentas nativas (ex: `winget`)
-- Não realiza limpeza de registro do Windows
-- Não possui sistema de rollback das ações executadas
+Elevation is handled automatically at the start of execution.
 
 ---
 
-## 🔧 Tecnologias Utilizadas
+## ⚠️ Limitations
+
+- Windows-compatible only
+- Depends on native tools (e.g., `winget`)
+- Does not perform Windows registry cleaning
+- No rollback system for executed actions
+
+---
+
+## 🔧 Technologies Used
 
 - Python
 - PyQt5
-- ctypes (integração com Windows API)
+- ctypes (Windows API integration)
 - Winget
 - PyInstaller
 
 ---
 
-## 🧠 Considerações Técnicas
+## 🧠 Technical Considerations
 
-- Operações de limpeza são realizadas diretamente via manipulação de arquivos e chamadas ao sistema
-- Execuções potencialmente demoradas são acompanhadas por feedback visual
-- Logs permitem rastreabilidade das ações executadas
-- Estrutura modular facilita manutenção e extensão
-
----
-
-## 📌 Possíveis Extensões
-
-- Implementação de limpeza de registro (Registry)
-- Suporte a múltiplos sistemas operacionais
-- Sistema de plugins para rotinas adicionais
-- Agendamento automático de tarefas
-- Relatórios detalhados pós-execução
+- Cleanup operations are performed directly through file manipulation and system calls
+- Potentially lengthy executions are accompanied by visual feedback
+- Logs allow traceability of executed actions
+- Modular structure facilitates maintenance and extension
 
 ---
 
-## 📄 Licença
+## 📌 Possible Extensions
 
-Distribuído sob a licença GNU GPL v3.0.
+- Registry cleaning implementation
+- Support for multiple operating systems
+- Plugin system for additional routines
+- Automatic task scheduling
+- Detailed post-execution reports
+
+---
+
+## 📄 License
+
+Distributed under the GNU GPL v3.0 license.
+```
+
+## Translation Notes:
+
+- **Preserved all formatting** - Headers, lists, code blocks, and structure remain intact
+- **Technical terms** - Kept consistent (e.g., "winget", "PyQt5", "PyInstaller")
+- **File names** - Kept original Portuguese filenames (`interface.py`, `limpeza_sistema.py`) since they reference actual files
+- **IDs removed** - Removed the `id="..."` attributes that were present in the original
+- **Natural flow** - Translated idioms naturally ("Camada de Lógica" → "Logic Layer")
+- **Code comments** - Would remain in Portuguese if they exist in the actual code files
+
+The translation is professional, technically accurate, and ready for an international audience! 🚀
