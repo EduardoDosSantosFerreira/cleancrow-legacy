@@ -1,57 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os
 
 a = Analysis(
-    ['interface.py'],
-    pathex=[os.getcwd()],
+    ['main.py'],
+    pathex=[],
     binaries=[],
-    datas=[
-        ('crowico.png', '.'),
-        ('core', 'core'),
-    ],
-    hiddenimports=[
-        'ctypes',
-        'ctypes.windll',
-        'ctypes.wintypes',
-        'string',
-        'enum',
-        'dataclasses',
-        'pathlib',
-        'stat',
-        'subprocess',
-        'threading',
-        'time',
-        'os',
-        'sys',
-        'queue',
-        'PyQt5',
-        'PyQt5.sip',
-        'PyQt5.QtCore',
-        'PyQt5.QtGui',
-        'PyQt5.QtWidgets',
-        'core.base',
-        'core.limpeza',
-        'core.modo_rapido',
-        'core.modo_normal',
-        'core.modo_seguro',
-    ],
+    datas=[('interface.py', '.'), ('core', 'core'), ('crowico.ico', '.')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'tkinter',
-        'numpy',
-        'pandas',
-        'matplotlib',
-        'PIL',
-        'curses',
-        'test',
-        'unittest',
-    ],
+    excludes=[],
     noarchive=False,
+    optimize=0,
 )
-
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -60,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='cleancrow',
+    name='CleanCrow',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -73,6 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='crowico.png',
-    uac_admin=True,
+    icon=['crowico.ico'],
 )

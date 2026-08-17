@@ -284,7 +284,6 @@ h6 {
 }
 
 .hero-title-highlight::after {
-  content: "⚡";
   position: absolute;
   top: -15px;
   right: -40px;
