@@ -6,6 +6,7 @@ import sys
 import time
 import subprocess
 import threading
+import qtawesome as qta
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -22,7 +23,7 @@ from PyQt5.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat, QPainter, QPixmap
+from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat, QPainter, QPixmap, QPen, QBrush
 
 # ============================================================================
 # CONFIGURAÇÃO DE CAMINHO PARA RECURSOS
@@ -533,16 +534,28 @@ class CleanCrowUI(QMainWindow):
         button_layout.setContentsMargins(0, 0, 0, 0)
         button_layout.setSpacing(14)
 
-        self.limpar_button = self._criar_botao_acao("🧹", "LIMPAR", "SISTEMA", "#e74c3c", "#c0392b")
+        # Botão LIMPAR SISTEMA com ícone do QtAwesome (broom)
+        self.limpar_button = self._criar_botao_acao_com_icone(
+            'fa5s.broom',
+            "LIMPAR", "SISTEMA", "#e74c3c", "#c0392b"
+        )
         self.limpar_button.clicked.connect(self.iniciar_limpeza)
         self.limpar_button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.limpar_button.customContextMenuRequested.connect(self.mostrar_menu_modo)
         self.limpar_button.setToolTip("Clique para limpar · botão direito para escolher o modo (atual: Normal)")
 
-        self.atualizar_button = self._criar_botao_acao("🔄", "ATUALIZAR", "SISTEMA", "#3498db", "#2980b9")
+        # Botão ATUALIZAR com ícone do QtAwesome (sync-alt)
+        self.atualizar_button = self._criar_botao_acao_com_icone(
+            'fa5s.sync-alt',
+            "ATUALIZAR", "SISTEMA", "#3498db", "#2980b9"
+        )
         self.atualizar_button.clicked.connect(self.iniciar_atualizacao)
 
-        self.clear_logs_button = self._criar_botao_acao("🗑️", "LIMPAR", "LOGS", "#3d3d3d", "#4a4a4a")
+        # Botão LIMPAR LOGS com ícone do QtAwesome (trash-alt)
+        self.clear_logs_button = self._criar_botao_acao_com_icone(
+            'fa5s.trash-alt',
+            "LIMPAR", "LOGS", "#3d3d3d", "#4a4a4a"
+        )
         self.clear_logs_button.clicked.connect(self.limpar_logs)
 
         button_layout.addWidget(self.limpar_button)
@@ -551,10 +564,15 @@ class CleanCrowUI(QMainWindow):
 
         self.main_layout.addWidget(button_container)
 
-    def _criar_botao_acao(self, emoji: str, linha1: str, linha2: str, cor: str, cor_hover: str) -> QPushButton:
+    def _criar_botao_acao_com_icone(self, nome_icone: str, linha1: str, linha2: str, cor: str, cor_hover: str) -> QPushButton:
+        """Cria um botão com ícone do QtAwesome"""
         btn = QPushButton(f"{linha1}\n{linha2}")
-        btn.setIcon(self._emoji_para_icone(emoji))
+        
+        # Gera o ícone usando qtawesome
+        icone = qta.icon(nome_icone, color='white')
+        btn.setIcon(icone)
         btn.setIconSize(QSize(28, 28))
+        
         btn.setCursor(Qt.PointingHandCursor)
         btn.setMinimumHeight(64)
         btn.setStyleSheet(f"""
@@ -566,7 +584,7 @@ class CleanCrowUI(QMainWindow):
                 border: none;
                 border-radius: 12px;
                 padding: 10px 16px;
-                text-align: left;
+                text-align: center;
             }}
             QPushButton:hover {{
                 background-color: {cor_hover};
@@ -577,18 +595,6 @@ class CleanCrowUI(QMainWindow):
             }}
         """)
         return btn
-
-    def _emoji_para_icone(self, emoji: str, tamanho: int = 32) -> QIcon:
-        pixmap = QPixmap(tamanho, tamanho)
-        pixmap.fill(Qt.transparent)
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-        fonte = QFont()
-        fonte.setPointSize(int(tamanho * 0.6))
-        painter.setFont(fonte)
-        painter.drawText(pixmap.rect(), Qt.AlignCenter, emoji)
-        painter.end()
-        return QIcon(pixmap)
 
     def setup_progress_panel(self):
         progress_container = QWidget()

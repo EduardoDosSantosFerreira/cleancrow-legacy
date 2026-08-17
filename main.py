@@ -23,7 +23,6 @@ else:
 # Adiciona os caminhos necessários
 sys.path.insert(0, BASE_DIR)
 
-# Adiciona também o diretório atual
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 
@@ -68,7 +67,9 @@ def main():
         from interface import CleanCrowUI
         
         # Cria a aplicação
-        app = QApplication(sys.argv)
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
         app.setStyle("Fusion")
         
         window = CleanCrowUI()
@@ -77,7 +78,6 @@ def main():
         sys.exit(app.exec_())
         
     except ImportError as e:
-        # Mostra os arquivos disponíveis para debug
         arquivos = "\n".join([f"  - {f}" for f in os.listdir(BASE_DIR) if os.path.isfile(os.path.join(BASE_DIR, f))])
         pastas = "\n".join([f"  📁 {f}/" for f in os.listdir(BASE_DIR) if os.path.isdir(os.path.join(BASE_DIR, f))])
         
