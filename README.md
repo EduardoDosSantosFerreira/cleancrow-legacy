@@ -1,4 +1,6 @@
-# 🐦‍⬛ CleanCrow
+<img src="https://cleancrow.vercel.app/src/assets/img/profile_icons/crowico.png" width="110">
+
+# CleanCrow
 
 **CleanCrow** is an advanced desktop application for **Windows system cleaning, optimization, and updating**, developed in Python with a modern PyQt5 graphical interface.
 
