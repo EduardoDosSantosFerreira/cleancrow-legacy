@@ -1,0 +1,5 @@
+# Python
+__pycache__/
+
+# Build PyInstaller (arquivos temporários de build)
+build/

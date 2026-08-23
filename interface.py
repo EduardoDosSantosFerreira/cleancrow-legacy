@@ -6,6 +6,8 @@ import sys
 import time
 import subprocess
 import threading
+from typing import List, Dict, Optional, Tuple
+
 import qtawesome as qta
 from PyQt5.QtWidgets import (
     QApplication,
@@ -23,21 +25,19 @@ from PyQt5.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat, QPainter, QPixmap, QPen, QBrush
+from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor, QTextCharFormat, QPixmap
 
 # ============================================================================
-# CONFIGURAÇÃO DE CAMINHO PARA RECURSOS
+# CONFIGURACAO DE CAMINHO
 # ============================================================================
 
 def resource_path(relative_path):
-    """Obtém o caminho correto para recursos quando compilado com PyInstaller"""
     try:
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-# Configuração para importar o core
 if getattr(sys, 'frozen', False):
     BASE_DIR = sys._MEIPASS
 else:
@@ -45,280 +45,181 @@ else:
 
 sys.path.insert(0, BASE_DIR)
 
-# Import da fachada unificada
-try:
-    from core.limpeza import SistemaLimpeza
-except ImportError:
+
+def is_admin() -> bool:
     try:
-        from limpeza import SistemaLimpeza
-    except ImportError:
-        SistemaLimpeza = None
+        import ctypes
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except:
+        return False
+
+
+# ============================================================================
+# IMPORTS DA ENGINE
+# ============================================================================
+
+ENGINE_AVAILABLE = False
+formatar_tamanho = lambda x: f"{x} B"
+
+try:
+    from core.engine import CleanerEngine, create_engine
+    from core.models import CleanerInfo, CleanerResult, ScanResult, RiskLevel, Category, formatar_tamanho
+    from core.cleaners import (
+        TempCleaner,
+        WindowsTempCleaner,
+        RecycleBinCleaner,
+        ThumbnailCleaner,
+        WERCleaner,
+        WindowsUpdateCleaner,
+        NvidiaCacheCleaner,
+        AmdCacheCleaner,
+        BrowsersCleaner,
+        WebCacheCleaner,
+        SystemCleaner,
+    )
+    ENGINE_AVAILABLE = True
+except ImportError as e:
+    print(f"Engine nao disponivel: {e}")
+    CleanerInfo = None
+    CleanerResult = None
+    ScanResult = None
+    RiskLevel = None
+    Category = None
+    formatar_tamanho = lambda x: f"{x} B"
+
 
 # ============================================================================
 # WORKER THREAD
 # ============================================================================
 
-class WorkerThread(QThread):
+class HybridWorkerThread(QThread):
     progress_updated = pyqtSignal(int)
     operation_completed = pyqtSignal(bool, str)
     log_message = pyqtSignal(str, str)
-    operation_started = pyqtSignal(str)
-    step_updated = pyqtSignal(int, int)
     status_text_updated = pyqtSignal(str)
+    total_freed = pyqtSignal(int)
 
-    def __init__(self, operation: str, modo: str = "normal", parent=None):
+    def __init__(self, modo: str = "normal", dry_run: bool = False, verbose: bool = True, parent=None):
         super().__init__(parent)
-        self.operation = operation
         self.modo = modo
-        self.sistema = None
+        self.dry_run = dry_run
+        self.verbose = verbose
+        self.engine = None
         self._is_running = True
-        self.max_execution_time = 1800
-        self.process = None
+        self._was_canceled = False
+        self._timeout_seconds = 3600  # 1 hora de timeout
 
     def stop(self):
         self._is_running = False
-        if self.sistema:
-            self.sistema.request_interruption()
-        if self.process:
-            try:
-                self.process.kill()
-            except:
-                pass
+        self._was_canceled = True
+        if self.engine:
+            self.engine.request_interruption()
+
+    def _emit_log(self, message: str, level: str = "info"):
+        self.log_message.emit(message, level)
 
     def run(self):
+        success = False
+        message = "Operacao cancelada"
+
         try:
-            if self.operation == "limpeza":
-                if self.modo == "rapido":
-                    sys.argv.append("--modo-rapido")
-                elif self.modo == "seguro":
-                    sys.argv.append("--modo-seguro")
-
-                self.sistema = SistemaLimpeza(dry_run=False, verbose=True, quiet=False)
-                success, message = self.sistema.executar_limpeza(self.update_progress)
-
+            if ENGINE_AVAILABLE:
+                success, message = self._run_with_engine()
             else:
-                success, message = self.executar_winget_atualizacao()
-
-            if self._is_running:
-                self.operation_completed.emit(success, message)
-
+                success, message = self._run_fallback()
         except Exception as e:
-            if self._is_running:
-                self.operation_completed.emit(False, f"Erro interno: {str(e)}")
+            message = f"Erro: {str(e)}"
+            self._emit_log(f"Erro: {message}", "error")
+            import traceback
+            self._emit_log(traceback.format_exc(), "error")
 
-    def update_progress(self, progress: int):
-        if self._is_running:
-            self.progress_updated.emit(progress)
+        if not self._was_canceled and self._is_running:
+            self.operation_completed.emit(success, message)
 
-    def executar_winget_atualizacao(self):
-        """Executa winget upgrade --all com log em tempo real"""
-        try:
-            self.log_message.emit("🔍 Verificando winget...", "info")
+    def _run_with_engine(self) -> Tuple[bool, str]:
+        self._emit_log("INICIANDO SCAN DO SISTEMA", "system")
+        self._emit_log("=" * 50, "system")
+        
+        self.engine = create_engine(dry_run=False, verbose=self.verbose)
+        self.engine.set_log_callback(self._emit_log)
 
-            result = subprocess.run(
-                ["winget", "--version"],
-                capture_output=True,
-                text=True,
-                shell=True,
-                creationflags=subprocess.CREATE_NO_WINDOW
-            )
+        all_cleaners = self.engine.get_cleaners()
+        all_names = [c.name for c in all_cleaners]
+        
+        self._emit_log(f"{len(all_names)} categorias disponiveis", "info")
+        
+        cleaners_filtrados = self._filtrar_por_modo(all_names)
+        
+        if not cleaners_filtrados:
+            return False, f"Nenhuma categoria disponivel no modo {self.modo.upper()}"
+        
+        self._emit_log(f"Modo {self.modo.upper()}: {len(cleaners_filtrados)} categorias", "info")
 
-            if result.returncode != 0:
-                return False, "Winget não encontrado. Instale o 'App Installer' da Microsoft Store."
+        self._emit_log("Analisando espaco a ser liberado...", "step")
+        scan_results = self.engine.scan_all()
+        total_antes = sum(r.size_bytes for r in scan_results.values())
+        
+        for name in cleaners_filtrados:
+            if name in scan_results and scan_results[name].exists:
+                size = scan_results[name].size_bytes
+                if size > 0:
+                    self._emit_log(f"  {name}: {formatar_tamanho(size)}", "detail")
+        
+        self._emit_log(f"Total detectado: {formatar_tamanho(total_antes)}", "info")
 
-            versao = result.stdout.strip()
-            self.log_message.emit(f"✅ Winget encontrado (versão: {versao})", "success")
+        self._emit_log("INICIANDO LIMPEZA", "system")
+        self._emit_log("=" * 50, "system")
+        
+        success, message, results = self.engine.clean_selected(
+            cleaners_filtrados,
+            progress_callback=self.progress_updated.emit,
+            status_callback=lambda s: self.status_text_updated.emit(s)
+        )
 
-            self.log_message.emit("📦 Atualizando fontes...", "step")
-            self.update_progress(5)
+        total_libertado = sum(r.bytes_freed for r in results)
+        self.total_freed.emit(total_libertado)
+        self.progress_updated.emit(100)
+        
+        return success, message
 
-            subprocess.run(
-                ["winget", "source", "update", "--quiet"],
-                capture_output=True,
-                shell=True,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                timeout=120
-            )
-
-            self.update_progress(10)
-
-            self.log_message.emit("🔍 Verificando atualizações disponíveis...", "step")
-
-            result = subprocess.run(
-                ["winget", "upgrade"],
-                capture_output=True,
-                text=True,
-                shell=True,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                timeout=120
-            )
-
-            output = result.stdout
-
-            if "No installed package" in output or "No available" in output:
-                self.log_message.emit("ℹ️ Nenhuma atualização disponível", "info")
-                self.update_progress(100)
-                return True, "Nenhuma atualização disponível"
-
-            self.log_message.emit("📋 Programas que serão atualizados:", "system")
-
-            linhas = output.split('\n')
-            programas_para_atualizar = []
-            in_table = False
-
-            for linha in linhas:
-                if 'Name' in linha and 'Id' in linha and 'Version' in linha:
-                    in_table = True
-                    continue
-                if in_table and linha.strip() and '---' not in linha:
-                    partes = linha.split()
-                    if len(partes) >= 3:
-                        nome = ' '.join(partes[:-3]) if len(partes) > 3 else partes[0]
-                        versao_atual = partes[-2] if len(partes) >= 2 else "?"
-                        nova_versao = partes[-1] if len(partes) >= 1 else "?"
-                        programas_para_atualizar.append((nome, versao_atual, nova_versao))
-                        self.log_message.emit(f"  📦 {nome} ({versao_atual} → {nova_versao})", "info")
-
-            if not programas_para_atualizar:
-                for linha in linhas:
-                    if '->' in linha:
-                        partes = linha.split('->')
-                        if len(partes) >= 2:
-                            nome = partes[0].strip()
-                            versoes = partes[1].strip().split()
-                            versao_atual = versoes[0] if versoes else "?"
-                            nova_versao = versoes[-1] if versoes else "?"
-                            programas_para_atualizar.append((nome, versao_atual, nova_versao))
-                            self.log_message.emit(f"  📦 {nome} ({versao_atual} → {nova_versao})", "info")
-
-            count = len(programas_para_atualizar)
-            self.log_message.emit(f"\n📊 Total: {count} programa(s) para atualizar\n", "success")
-            self.step_updated.emit(0, count)
-
-            if count == 0:
-                self.update_progress(100)
-                return True, "Nenhuma atualização disponível"
-
-            self.log_message.emit("🚀 Iniciando atualização dos programas...", "step")
-            self.log_message.emit("⏱️ Aguarde... cada programa será baixado e instalado", "warning")
-            self.log_message.emit("=" * 50, "system")
-
-            self.update_progress(20)
-
-            comando = [
-                "winget", "upgrade", "--all",
-                "--accept-package-agreements",
-                "--accept-source-agreements",
-                "--disable-interactivity"
+    def _filtrar_por_modo(self, selected: List[str]) -> List[str]:
+        if self.modo == "seguro":
+            nomes_seguros = [
+                "Temporarios do Usuario",
+                "Temporarios do Windows",
+                "Lixeira",
+                "Cache de Miniaturas",
+                "Relatorios de Erro (WER)",
+                "Navegadores",
             ]
+            return [n for n in selected if n in nomes_seguros]
+        elif self.modo == "rapido":
+            nomes_rapidos = [
+                "Temporarios do Usuario",
+                "Temporarios do Windows",
+                "Lixeira",
+                "Cache de Miniaturas",
+                "Navegadores",
+                "Relatorios de Erro (WER)",
+            ]
+            return [n for n in selected if n in nomes_rapidos]
+        else:
+            return [n for n in selected if n != "WebCache"]
 
-            self.process = subprocess.Popen(
-                comando,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                shell=True,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                bufsize=1
-            )
-
-            programa_atual = ""
-            programa_index = 0
-
-            def monitor_output():
-                nonlocal programa_atual, programa_index
-                for line in iter(self.process.stdout.readline, ''):
-                    if not self._is_running:
-                        break
-
-                    line = line.strip()
-                    if not line:
-                        continue
-
-                    if len(line) > 300:
-                        line = line[:300] + "..."
-
-                    line_lower = line.lower()
-
-                    if line.startswith('█') or line.startswith('■') or line.startswith('['):
-                        pass
-                    elif 'baixando' in line_lower or 'downloading' in line_lower:
-                        self.log_message.emit(f"  📥 {line}", "info")
-                    elif 'instalando' in line_lower or 'installing' in line_lower:
-                        self.log_message.emit(f"  ⚙️ {line}", "step")
-                    elif 'sucesso' in line_lower or 'success' in line_lower or 'concluído' in line_lower:
-                        self.log_message.emit(f"  ✅ {line}", "success")
-                    elif 'erro' in line_lower or 'error' in line_lower or 'falha' in line_lower:
-                        self.log_message.emit(f"  ❌ {line}", "error")
-                    elif 'atualizado' in line_lower or 'upgraded' in line_lower:
-                        self.log_message.emit(f"  ✨ {line}", "success")
-                    elif 'já instalado' in line_lower or 'already installed' in line_lower:
-                        self.log_message.emit(f"  ℹ️ {line}", "info")
-                    elif 'ignorando' in line_lower or 'skipping' in line_lower:
-                        self.log_message.emit(f"  ⏭️ {line}", "warning")
-                    elif 'encontrado' in line_lower or 'found' in line_lower:
-                        programa_atual = line
-                        programa_index += 1
-                        self.log_message.emit(f"\n📌 [{programa_index}/{count}] {line}", "system")
-                        self.step_updated.emit(programa_index, count)
-                        self.status_text_updated.emit(f"Atualizando pacote {programa_index} de {count}...")
-                    else:
-                        if line and not line.startswith(' ' * 10):
-                            self.log_message.emit(f"  {line}", "info")
-
-            monitor_thread = threading.Thread(target=monitor_output, daemon=True)
-            monitor_thread.start()
-
-            progress = 20
-            incremento = 70 / max(count, 1)
-
-            while self.process.poll() is None:
-                if not self._is_running:
-                    self.process.kill()
-                    return False, "Atualização cancelada pelo usuário"
-
-                if self.process.poll() is None and programa_index > 0:
-                    novo_progresso = min(20 + (programa_index * incremento), 90)
-                    if novo_progresso > progress:
-                        progress = novo_progresso
-                        self.update_progress(int(progress))
-
-                time.sleep(1)
-
-            returncode = self.process.returncode
-            self.update_progress(100)
-
-            self.log_message.emit("\n" + "=" * 50, "system")
-
-            if returncode == 0:
-                self.log_message.emit("✅ Todas as atualizações foram concluídas!", "success")
-                return True, f"{count} programa(s) atualizado(s) com sucesso!"
-            elif returncode == -1 or returncode == 1:
-                self.log_message.emit("⚠️ Atualização concluída (alguns programas podem ter sido ignorados)", "warning")
-                return True, f"Processo finalizado. {count} programa(s) processado(s)"
-            else:
-                self.log_message.emit(f"⚠️ Winget retornou código {returncode}", "warning")
-                return True, f"Processo finalizado. Verifique os logs acima."
-
-        except subprocess.TimeoutExpired:
-            if self.process:
-                self.process.kill()
-            return False, "Timeout: A atualização demorou demais. Tente novamente."
-        except Exception as e:
-            return False, f"Erro: {str(e)}"
-        finally:
-            self.process = None
+    def _run_fallback(self) -> Tuple[bool, str]:
+        # Implementação de fallback simples (apenas limpeza básica)
+        self._emit_log("Engine nao disponivel. Usando modo de limpeza basica.", "warning")
+        return False, "Motor de limpeza nao disponivel."
 
 
 # ============================================================================
-# BARRA DE TÍTULO PERSONALIZADA
+# BARRA DE TITULO
 # ============================================================================
 
 class TitleBar(QWidget):
-    def __init__(self, main_window, on_about=None):
+    def __init__(self, main_window):
         super().__init__()
         self.main_window = main_window
-        self.on_about = on_about
         self._drag_offset = None
 
         self.setFixedHeight(38)
@@ -343,25 +244,48 @@ class TitleBar(QWidget):
         if icon_path and os.path.exists(icon_path):
             icon_label.setPixmap(QPixmap(icon_path).scaled(20, 20, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
-            icon_label.setText("🐦")
+            icon_label.setText("")
         layout.addWidget(icon_label)
 
-        titulo = QLabel("<span style='color:#e74c3c;font-weight:bold;'>CleanCrow</span> - Painel de Controle")
-        titulo.setStyleSheet("""
-            color: #8a8f98;
-            font-size: 12px;
-            font-family: 'Consolas', 'Courier New', monospace;
-        """)
+        titulo = QLabel("CleanCrow - Painel de Controle")
+        titulo.setStyleSheet("color: #e74c3c; font-size: 12px; font-family: 'Consolas', monospace; font-weight: bold;")
         layout.addWidget(titulo)
+        
+        # INDICADOR DE ADMIN
+        self.admin_indicator = QLabel()
+        if is_admin():
+            self.admin_indicator.setText(" ADMIN ")
+            self.admin_indicator.setStyleSheet("""
+                background-color: #27ae60;
+                color: #ffffff;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 8px;
+                border-radius: 4px;
+            """)
+            self.admin_indicator.setToolTip("Executando como Administrador")
+        else:
+            self.admin_indicator.setText(" ADMIN? ")
+            self.admin_indicator.setStyleSheet("""
+                background-color: #e74c3c;
+                color: #ffffff;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 8px;
+                border-radius: 4px;
+            """)
+            self.admin_indicator.setToolTip("Nao esta como Administrador - algumas limpezas falharao")
+        layout.addWidget(self.admin_indicator)
+        
         layout.addStretch()
 
-        self.status_label = QLabel("● Pronto")
+        self.status_label = QLabel("Pronto")
         self.status_label.setStyleSheet("color: #27ae60; font-size: 11px; font-weight: bold;")
         layout.addWidget(self.status_label)
 
         layout.addSpacing(10)
 
-        close_btn = QPushButton("✕")
+        close_btn = QPushButton("X")
         close_btn.setFixedSize(18, 18)
         close_btn.setCursor(Qt.PointingHandCursor)
         close_btn.setFlat(True)
@@ -371,7 +295,7 @@ class TitleBar(QWidget):
                 color: #8a8f98;
                 border-radius: 9px;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 11px;
                 border: none;
                 padding: 0px;
             }
@@ -406,8 +330,9 @@ class TitleBar(QWidget):
             self.main_window.showMaximized()
 
     def set_status(self, texto: str, cor: str):
-        self.status_label.setText(f"● {texto}")
+        self.status_label.setText(texto)
         self.status_label.setStyleSheet(f"color: {cor}; font-size: 11px; font-weight: bold;")
+
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -427,7 +352,7 @@ class TitleBar(QWidget):
 
 
 # ============================================================================
-# CLASSE PRINCIPAL DA INTERFACE
+# INTERFACE PRINCIPAL
 # ============================================================================
 
 class CleanCrowUI(QMainWindow):
@@ -448,7 +373,7 @@ class CleanCrowUI(QMainWindow):
                 color: #ffffff;
                 border: 1px solid #262626;
                 border-radius: 10px;
-                font-family: 'Consolas', 'Courier New', monospace;
+                font-family: 'Consolas', monospace;
                 font-size: 11px;
                 padding: 8px;
             }
@@ -480,6 +405,7 @@ class CleanCrowUI(QMainWindow):
         self.worker_thread = None
 
         self.setup_ui()
+        QTimer.singleShot(300, self._scan_silencioso)
 
     def obter_caminho_icone(self, nome_arquivo: str) -> str:
         caminhos = [
@@ -515,7 +441,7 @@ class CleanCrowUI(QMainWindow):
         outer_layout.setContentsMargins(0, 0, 0, 0)
         outer_layout.setSpacing(0)
 
-        self.title_bar = TitleBar(self, on_about=self.mostrar_sobre)
+        self.title_bar = TitleBar(self)
         outer_layout.addWidget(self.title_bar)
 
         content = QWidget()
@@ -534,27 +460,21 @@ class CleanCrowUI(QMainWindow):
         button_layout.setContentsMargins(0, 0, 0, 0)
         button_layout.setSpacing(14)
 
-        # Botão LIMPAR SISTEMA com ícone do QtAwesome (broom)
-        self.limpar_button = self._criar_botao_acao_com_icone(
-            'fa5s.broom',
-            "LIMPAR", "SISTEMA", "#e74c3c", "#c0392b"
+        self.limpar_button = self._criar_botao_acao(
+            'fa5s.broom', "LIMPAR", "SISTEMA", "#e74c3c", "#c0392b"
         )
         self.limpar_button.clicked.connect(self.iniciar_limpeza)
         self.limpar_button.setContextMenuPolicy(Qt.CustomContextMenu)
         self.limpar_button.customContextMenuRequested.connect(self.mostrar_menu_modo)
-        self.limpar_button.setToolTip("Clique para limpar · botão direito para escolher o modo (atual: Normal)")
+        self.limpar_button.setToolTip("Clique para limpar | Botao direito para modo (atual: Normal)")
 
-        # Botão ATUALIZAR com ícone do QtAwesome (sync-alt)
-        self.atualizar_button = self._criar_botao_acao_com_icone(
-            'fa5s.sync-alt',
-            "ATUALIZAR", "SISTEMA", "#3498db", "#2980b9"
+        self.atualizar_button = self._criar_botao_acao(
+            'fa5s.sync-alt', "ATUALIZAR", "SISTEMA", "#3498db", "#2980b9"
         )
         self.atualizar_button.clicked.connect(self.iniciar_atualizacao)
 
-        # Botão LIMPAR LOGS com ícone do QtAwesome (trash-alt)
-        self.clear_logs_button = self._criar_botao_acao_com_icone(
-            'fa5s.trash-alt',
-            "LIMPAR", "LOGS", "#3d3d3d", "#4a4a4a"
+        self.clear_logs_button = self._criar_botao_acao(
+            'fa5s.trash-alt', "LIMPAR", "LOGS", "#3d3d3d", "#4a4a4a"
         )
         self.clear_logs_button.clicked.connect(self.limpar_logs)
 
@@ -564,15 +484,11 @@ class CleanCrowUI(QMainWindow):
 
         self.main_layout.addWidget(button_container)
 
-    def _criar_botao_acao_com_icone(self, nome_icone: str, linha1: str, linha2: str, cor: str, cor_hover: str) -> QPushButton:
-        """Cria um botão com ícone do QtAwesome"""
+    def _criar_botao_acao(self, nome_icone: str, linha1: str, linha2: str, cor: str, cor_hover: str) -> QPushButton:
         btn = QPushButton(f"{linha1}\n{linha2}")
-        
-        # Gera o ícone usando qtawesome
         icone = qta.icon(nome_icone, color='white')
         btn.setIcon(icone)
         btn.setIconSize(QSize(28, 28))
-        
         btn.setCursor(Qt.PointingHandCursor)
         btn.setMinimumHeight(64)
         btn.setStyleSheet(f"""
@@ -607,7 +523,7 @@ class CleanCrowUI(QMainWindow):
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.setSpacing(10)
 
-        self.progress_label = QLabel("Aguardando início da operação")
+        self.progress_label = QLabel("Aguardando inicio da operacao")
         self.progress_label.setStyleSheet("font-size: 12px; color: #ecf0f1;")
         status_layout.addWidget(self.progress_label)
         status_layout.addStretch()
@@ -627,6 +543,19 @@ class CleanCrowUI(QMainWindow):
         """)
         self.fraction_badge.setVisible(False)
         status_layout.addWidget(self.fraction_badge)
+
+        self.total_liberado_label = QLabel("Total: 0 B")
+        self.total_liberado_label.setStyleSheet("""
+            background-color: #1a2a1a;
+            color: #2dd4bf;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 12px;
+            border-radius: 9px;
+            border: 1px solid #2dd4bf;
+        """)
+        self.total_liberado_label.setVisible(False)
+        status_layout.addWidget(self.total_liberado_label)
 
         progress_layout.addWidget(status_row)
 
@@ -661,18 +590,17 @@ class CleanCrowUI(QMainWindow):
         log_header_layout.setSpacing(8)
 
         prompt_icon = QLabel(">_")
-        prompt_icon.setStyleSheet("""
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 14px;
-            font-family: 'Consolas', 'Courier New', monospace;
-        """)
+        prompt_icon.setStyleSheet("color: #e74c3c; font-weight: bold; font-size: 14px; font-family: 'Consolas', monospace;")
         log_header_layout.addWidget(prompt_icon)
 
-        log_title = QLabel("Log de Operações")
+        log_title = QLabel("Log de Operacoes")
         log_title.setStyleSheet("font-size: 13px; font-weight: bold; color: #ffffff;")
         log_header_layout.addWidget(log_title)
         log_header_layout.addStretch()
+
+        self.log_count_label = QLabel("0 linhas")
+        self.log_count_label.setStyleSheet("color: #6b7280; font-size: 11px;")
+        log_header_layout.addWidget(self.log_count_label)
 
         log_layout.addWidget(log_header)
 
@@ -702,9 +630,9 @@ class CleanCrowUI(QMainWindow):
             }
         """)
         modos = [
-            ("normal", "🚀 Normal — limpeza completa"),
-            ("rapido", "⚡ Rápido — apenas caches"),
-            ("seguro", "🔒 Seguro — não mexe no sistema"),
+            ("normal", "Normal - limpeza completa"),
+            ("rapido", "Rapido - apenas caches"),
+            ("seguro", "Seguro - apenas itens seguros"),
         ]
         for chave, label in modos:
             action = QAction(label, self)
@@ -716,11 +644,194 @@ class CleanCrowUI(QMainWindow):
 
     def selecionar_modo(self, modo: str):
         self.modo_atual = modo
-        nomes = {"normal": "Normal", "rapido": "Rápido", "seguro": "Seguro"}
+        nomes = {"normal": "Normal", "rapido": "Rapido", "seguro": "Seguro"}
         self.limpar_button.setToolTip(
-            f"Clique para limpar · botão direito para escolher o modo (atual: {nomes[modo]})"
+            f"Clique para limpar | Botao direito para modo (atual: {nomes[modo]})"
         )
-        self.add_log_message(f"📌 Modo alterado para {nomes[modo].upper()}", "info")
+        self.add_log_message(f"Modo alterado para {nomes[modo].upper()}", "info")
+
+    def _scan_silencioso(self):
+        if not ENGINE_AVAILABLE:
+            return
+        try:
+            engine = create_engine(dry_run=True, verbose=False)
+            results = engine.scan_all()
+            total = sum(r.size_bytes for r in results.values())
+            if total > 0:
+                self.add_log_message(f"Scan inicial: {formatar_tamanho(total)} recuperaveis", "info")
+                self.total_liberado_label.setText(f"Total: {formatar_tamanho(total)}")
+                self.total_liberado_label.setVisible(True)
+        except Exception as e:
+            print(f"Erro no scan inicial: {e}")
+
+    def iniciar_limpeza(self):
+        if self.worker_thread and self.worker_thread.isRunning():
+            return
+
+        self.limpar_button.setEnabled(False)
+        self.atualizar_button.setEnabled(False)
+        self.clear_logs_button.setEnabled(False)
+
+        self.progress_bar.setValue(0)
+        self.percent_label.setText("0%")
+        self.fraction_badge.setVisible(False)
+        self.fraction_badge.setText("")
+        self.total_liberado_label.setVisible(False)
+        self.progress_label.setText("Executando: Limpeza do sistema...")
+        self.title_bar.set_status("Executando", "#f39c12")
+
+        self.log_text.clear()
+        self.log_count_label.setText("0 linhas")
+        
+        self.add_log_message("INICIANDO LIMPEZA DO SISTEMA", "system")
+        self.add_log_message("=" * 60, "system")
+        self.add_log_message(f"Modo selecionado: {self.modo_atual.upper()}", "info")
+        
+        self.worker_thread = HybridWorkerThread(
+            modo=self.modo_atual,
+            dry_run=False,
+            verbose=True,
+            parent=self
+        )
+        
+        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
+        self.worker_thread.operation_completed.connect(self.operacao_concluida)
+        self.worker_thread.log_message.connect(self.add_log_message)
+        self.worker_thread.status_text_updated.connect(self._atualizar_texto_status)
+        self.worker_thread.total_freed.connect(self._on_total_freed)
+        
+        self.worker_thread.start()
+
+    def iniciar_atualizacao(self):
+        if self.worker_thread and self.worker_thread.isRunning():
+            return
+
+        self.limpar_button.setEnabled(False)
+        self.atualizar_button.setEnabled(False)
+        self.clear_logs_button.setEnabled(False)
+
+        self.progress_bar.setValue(0)
+        self.percent_label.setText("0%")
+        self.fraction_badge.setVisible(False)
+        self.fraction_badge.setText("")
+        self.total_liberado_label.setVisible(False)
+        self.progress_label.setText("Executando: Atualizacao do sistema...")
+        self.title_bar.set_status("Executando", "#f39c12")
+
+        self.log_text.clear()
+        self.log_count_label.setText("0 linhas")
+        
+        self.add_log_message("INICIANDO ATUALIZACAO DO SISTEMA", "system")
+        self.add_log_message("=" * 60, "system")
+        self.add_log_message("Atualizando todos os programas via Winget", "info")
+        self.add_log_message("O processo pode levar varios minutos. Aguarde...", "warning")
+
+        self._executar_winget_legado()
+
+    def _executar_winget_legado(self):
+        try:
+            self.add_log_message("Verificando winget...", "info")
+            
+            result = subprocess.run(
+                ["winget", "--version"],
+                capture_output=True,
+                text=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            if result.returncode != 0:
+                self.operacao_concluida(False, "Winget nao encontrado. Instale o App Installer da Microsoft Store.")
+                return
+            
+            versao = result.stdout.strip()
+            self.add_log_message(f"Winget encontrado (versao: {versao})", "success")
+            
+            self.add_log_message("Atualizando fontes...", "step")
+            subprocess.run(
+                ["winget", "source", "update", "--quiet"],
+                capture_output=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                timeout=120
+            )
+            
+            self.add_log_message("Verificando atualizacoes disponiveis...", "step")
+            self.add_log_message("Iniciando atualizacao...", "step")
+            self.add_log_message("Aguarde...", "warning")
+            
+            proc = subprocess.Popen(
+                ["winget", "upgrade", "--all", 
+                 "--accept-package-agreements", 
+                 "--accept-source-agreements"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                bufsize=1
+            )
+            
+            for line in iter(proc.stdout.readline, ''):
+                if line.strip():
+                    self.add_log_message(f"  {line.strip()}", "info")
+                self.atualizar_progresso(50)
+            
+            proc.wait()
+            
+            if proc.returncode == 0:
+                self.add_log_message("Atualizacao concluida!", "success")
+                self.operacao_concluida(True, "Atualizacao concluida com sucesso!")
+            else:
+                self.add_log_message(f"Winget retornou codigo {proc.returncode}", "warning")
+                self.operacao_concluida(True, f"Atualizacao finalizada com codigo {proc.returncode}")
+                
+        except subprocess.TimeoutExpired:
+            self.operacao_concluida(False, "Timeout: A atualizacao demorou demais. Tente novamente.")
+        except Exception as e:
+            self.operacao_concluida(False, f"Erro: {str(e)}")
+
+    def _on_total_freed(self, total: int):
+        if total > 0:
+            self.total_liberado_label.setText(f"Total: {formatar_tamanho(total)}")
+            self.total_liberado_label.setVisible(True)
+
+    def _atualizar_texto_status(self, texto: str):
+        self.progress_label.setText(f"Executando: {texto}")
+
+    def atualizar_progresso(self, valor: int):
+        self.progress_bar.setValue(valor)
+        self.percent_label.setText(f"{valor}%")
+
+    def operacao_concluida(self, success: bool, message: str):
+        self.add_log_message("\n" + "=" * 60, "system")
+        
+        if success:
+            self.title_bar.set_status("Concluido", "#27ae60")
+            self.progress_bar.setValue(100)
+            self.percent_label.setText("100%")
+            self.progress_label.setText("Operacao concluida com sucesso!")
+            self.add_log_message(f"SUCESSO: {message}", "success")
+            
+            if self.total_liberado_label.isVisible():
+                self.add_log_message(f"Total liberado: {self.total_liberado_label.text()}", "success")
+            
+            QTimer.singleShot(500, lambda: self.show_message("Sucesso", message, QMessageBox.Information))
+        else:
+            self.title_bar.set_status("Erro", "#e74c3c")
+            self.progress_label.setText("Operacao falhou!")
+            self.add_log_message(f"FALHA: {message}", "error")
+            QTimer.singleShot(500, lambda: self.show_message("Erro", message, QMessageBox.Critical))
+
+        self.limpar_button.setEnabled(True)
+        self.atualizar_button.setEnabled(True)
+        self.clear_logs_button.setEnabled(True)
+        
+        if self.worker_thread and self.worker_thread.isRunning():
+            self.worker_thread.quit()
+            self.worker_thread.wait(5000)
+        
+        self.worker_thread = None
 
     def add_log_message(self, message: str, msg_type: str = "info"):
         timestamp = time.strftime("%H:%M:%S")
@@ -731,6 +842,7 @@ class CleanCrowUI(QMainWindow):
             "error": "#ec7063",
             "system": "#bb8fce",
             "step": "#f0a860",
+            "detail": "#8a8f98",
         }
         color = colors.get(msg_type, "#ffffff")
 
@@ -750,7 +862,15 @@ class CleanCrowUI(QMainWindow):
         self.log_text.setTextCursor(cursor)
         self.log_text.ensureCursorVisible()
 
+        line_count = self.log_text.document().blockCount()
+        self.log_count_label.setText(f"{line_count} linhas")
+
         QApplication.processEvents()
+
+    def limpar_logs(self):
+        self.log_text.clear()
+        self.log_count_label.setText("0 linhas")
+        self.add_log_message("Logs limpos com sucesso!", "info")
 
     def show_message(self, title: str, message: str, icon):
         msg_box = QMessageBox()
@@ -779,108 +899,10 @@ class CleanCrowUI(QMainWindow):
         """)
         msg_box.exec_()
 
-    def iniciar_limpeza(self):
-        self.limpar_button.setEnabled(False)
-        self.atualizar_button.setEnabled(False)
-        self.clear_logs_button.setEnabled(False)
-
-        self.progress_bar.setValue(0)
-        self.percent_label.setText("0%")
-        self.fraction_badge.setVisible(False)
-        self.fraction_badge.setText("")
-        self.progress_label.setText("Executando: Limpeza do sistema...")
-        self.title_bar.set_status("Executando", "#f39c12")
-
-        self.log_text.clear()
-        self.add_log_message("🚀 Iniciando limpeza do sistema...", "system")
-        self.add_log_message(f"📌 Modo selecionado: {self.modo_atual.upper()}", "info")
-
-        self.worker_thread = WorkerThread("limpeza", self.modo_atual)
-        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
-        self.worker_thread.operation_completed.connect(self.operacao_concluida)
-        self.worker_thread.log_message.connect(self.add_log_message)
-        self.worker_thread.step_updated.connect(self.atualizar_passo)
-        self.worker_thread.status_text_updated.connect(self._atualizar_texto_status)
-        self.worker_thread.start()
-
-    def iniciar_atualizacao(self):
-        self.limpar_button.setEnabled(False)
-        self.atualizar_button.setEnabled(False)
-        self.clear_logs_button.setEnabled(False)
-
-        self.progress_bar.setValue(0)
-        self.percent_label.setText("0%")
-        self.fraction_badge.setVisible(False)
-        self.fraction_badge.setText("")
-        self.progress_label.setText("Executando: Atualização do sistema...")
-        self.title_bar.set_status("Executando", "#f39c12")
-
-        self.log_text.clear()
-        self.add_log_message("🔄 Iniciando atualização do sistema via Winget...", "system")
-        self.add_log_message("📦 Vou atualizar todos os programas instalados", "info")
-        self.add_log_message("⏰ O processo pode levar vários minutos. Aguarde...", "warning")
-
-        self.worker_thread = WorkerThread("atualizacao", self.modo_atual)
-        self.worker_thread.progress_updated.connect(self.atualizar_progresso)
-        self.worker_thread.operation_completed.connect(self.operacao_concluida)
-        self.worker_thread.log_message.connect(self.add_log_message)
-        self.worker_thread.step_updated.connect(self.atualizar_passo)
-        self.worker_thread.status_text_updated.connect(self._atualizar_texto_status)
-        self.worker_thread.start()
-
-    def atualizar_progresso(self, valor: int):
-        self.progress_bar.setValue(valor)
-        self.percent_label.setText(f"{valor}%")
-
-    def atualizar_passo(self, atual: int, total: int):
-        if total > 0:
-            self.fraction_badge.setText(f"{atual}/{total}")
-            self.fraction_badge.setVisible(True)
-
-    def _atualizar_texto_status(self, texto: str):
-        self.progress_label.setText(f"Executando: {texto}")
-
-    def operacao_concluida(self, success: bool, message: str):
-        if success:
-            self.title_bar.set_status("Concluído", "#27ae60")
-            self.progress_bar.setValue(100)
-            self.percent_label.setText("100%")
-            self.progress_label.setText("Operação concluída com sucesso!")
-            self.add_log_message(f"✅ {message}", "success")
-            QTimer.singleShot(500, lambda: self.show_message("Sucesso", message, QMessageBox.Information))
-        else:
-            self.title_bar.set_status("Erro", "#e74c3c")
-            self.progress_label.setText("Operação falhou!")
-            self.add_log_message(f"❌ {message}", "error")
-            QTimer.singleShot(500, lambda: self.show_message("Erro", message, QMessageBox.Critical))
-
-        self.limpar_button.setEnabled(True)
-        self.atualizar_button.setEnabled(True)
-        self.clear_logs_button.setEnabled(True)
-        self.worker_thread = None
-
-    def limpar_logs(self):
-        self.log_text.clear()
-        self.add_log_message("🗑️ Logs limpos com sucesso!", "info")
-
-    def mostrar_sobre(self):
-        QMessageBox.about(self, "Sobre o CleanCrow",
-            "CleanCrow - Otimizador de Sistema\n\n"
-            "Versão: 3.1.0\n"
-            "© 2024 Eduardo Dos Santos Ferreira\n\n"
-            "Funcionalidades:\n"
-            "• Limpeza de sistema (3 modos)\n"
-            "• Atualização de programas via Winget\n\n"
-            "Modos de limpeza (botão direito em 'Limpar Sistema'):\n"
-            "• NORMAL: Limpeza completa em todos os discos + DISM + CleanMgr\n"
-            "• RÁPIDO: Apenas caches leves e temporários\n"
-            "• SEGURO: Não mexe em arquivos do sistema\n\n"
-            "Licenciado sob GNU GPL v3.0")
-
     def closeEvent(self, event):
         if self.worker_thread and self.worker_thread.isRunning():
             reply = QMessageBox.question(self, 'Confirmar',
-                'Uma operação está em andamento. Deseja cancelar e sair?',
+                'Uma operacao esta em andamento. Deseja cancelar e sair?',
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.Yes:
@@ -893,6 +915,10 @@ class CleanCrowUI(QMainWindow):
         else:
             event.accept()
 
+
+# ============================================================================
+# MAIN
+# ============================================================================
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

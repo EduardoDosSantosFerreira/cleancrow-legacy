@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - CleanCrow</title>
+    <meta name="description" content="Complete documentation for CleanCrow - Windows cleaning and optimization tool">
+    <link rel="stylesheet" href="./doc.css">
+    <link rel="icon" href=".././src/assets/img/profile_icons/crowico.png" type="image/png">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"></head>
+    <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap"
+    rel="stylesheet">
+<body>
+    <!-- Simple Navbar -->
+    <nav class="navbar-simple">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="../index.html">
+                <img src=".././src/assets/img/profile_icons/crowico.png" alt="CleanCrow Logo" class="navbar-logo">
+                <span>CleanCrow</span>
+            </a>
+            <div class="navbar-links">
+                <a href=".././index.html" class="navbar-link">Home</a>
+                <a href=".././index.html#features" class="navbar-link">Features</a>
+                <a href=".././index.html#security" class="navbar-link">Security</a>
+                <a href=".././index.html#download" class="navbar-link">Download</a>
+            </div>
+        </div>
+    </nav>
+<br><br>
+    <!-- ============================================ -->
+    <!-- DOCUMENTATION HEADER -->
+    <!-- ============================================ -->
+    <header class="doc-header">
+        <h1>CleanCrow</h1>
+        <p class="doc-subtitle">
+            Complete Documentation for the Windows Cleaning and Optimization Tool
+        </p>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- OVERVIEW -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>📋 Overview</h2>
+        <p>
+            <strong>CleanCrow</strong> is a desktop application developed in Python with a PyQt5 interface, designed to automate maintenance, cleaning, and updating tasks for Windows systems. It uses native operating system tools to ensure security and compatibility.
+        </p>
+        <blockquote>
+            <p>"Keep your Windows clean, fast, and up to date with just one click."</p>
+        </blockquote>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FEATURES -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>✨ Features</h2>
+        <ul>
+            <li><strong>Temporary Files Cleaning:</strong> Removes unnecessary files from user and system temporary folders.</li>
+            <li><strong>Recycle Bin Cleaning:</strong> Empties the Windows Recycle Bin using native API.</li>
+            <li><strong>Cache Cleaning:</strong> Removes browser caches, GPU shaders, thumbnails, and Windows Update caches.</li>
+            <li><strong>Report Cleaning:</strong> Removes error reports (WER) and old logs.</li>
+            <li><strong>Program Updates:</strong> Integrates with the Windows Package Manager (winget) to update all applications.</li>
+            <li><strong>Advanced Cleaning:</strong> Executes <code>cleanmgr</code> and <code>DISM</code> for deep system optimization.</li>
+            <li><strong>Modern Interface:</strong> Dark theme with professional look and real-time feedback.</li>
+        </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ARCHITECTURE -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>🏗️ Architecture</h2>
+        <p>The project is organized into well-defined layers:</p>
+        <ul>
+            <li><strong>Interface (interface.py):</strong> Responsible for user interaction.</li>
+            <li><strong>Engine (engine.py):</strong> Orchestrates the execution of cleaners.</li>
+            <li><strong>Cleaners (core/cleaners/):</strong> Specialized modules for each type of cleaning.</li>
+            <li><strong>Windows APIs (win32_api.py):</strong> Access to native system functionalities.</li>
+            <li><strong>Logger (logger.py):</strong> Real-time operation logging.</li>
+        </ul>
+        <div class="note">
+            <p><strong>Note:</strong> The project follows a layered architecture pattern, making it easy to maintain and add new features.</p>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- AVAILABLE CLEANERS -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>🧹 Available Cleaners</h2>
+        <p>Below are all cleaning modules available in CleanCrow:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cleaner</th>
+                    <th>Description</th>
+                    <th>Requires Admin</th>
+                    <th>Risk Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>TempCleaner</td><td>User temporary files</td><td>No</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>WindowsTempCleaner</td><td>Windows temporary files</td><td>Yes</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>RecycleBinCleaner</td><td>Empties the Recycle Bin</td><td>No</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>ThumbnailCleaner</td><td>Thumbnail cache</td><td>No</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>WERCleaner</td><td>Error reports</td><td>No</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>WindowsUpdateCleaner</td><td>Windows Update cache</td><td>Yes</td><td><span class="flag avancado">Advanced</span></td></tr>
+                <tr><td>BrowsersCleaner</td><td>Browser cache</td><td>No</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>WebCacheCleaner</td><td>Web application cache</td><td>No</td><td><span class="flag especial">Special</span></td></tr>
+                <tr><td>NvidiaCacheCleaner</td><td>NVIDIA shader cache</td><td>No</td><td><span class="flag avancado">Advanced</span></td></tr>
+                <tr><td>AmdCacheCleaner</td><td>AMD shader cache</td><td>No</td><td><span class="flag avancado">Advanced</span></td></tr>
+                <tr><td>SystemCleaner</td><td>Advanced cleaning (cleanmgr + DISM)</td><td>Yes</td><td><span class="flag avancado">Advanced</span></td></tr>
+                <tr><td>DNSCleaner</td><td>DNS cache</td><td>Yes</td><td><span class="flag seguro">Safe</span></td></tr>
+                <tr><td>ComponentStoreCleaner</td><td>Component Store (DISM)</td><td>Yes</td><td><span class="flag avancado">Advanced</span></td></tr>
+            </tbody>
+        </table>
+        <div class="warning">
+            <p><strong>Warning:</strong> Some cleaners require administrator privileges and may close running applications (e.g., browsers).</p>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SECURITY -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>🔒 Security</h2>
+        <ul>
+            <li>Uses only native Windows tools.</li>
+            <li>Does not modify the registry without explicit permission.</li>
+            <li>Requires user confirmation for critical operations.</li>
+            <li>Logs all actions performed.</li>
+        </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- LOGS -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>📊 Logs</h2>
+        <p>The logging system records operations with the following levels:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Level</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>info</code></td><td>General information</td></tr>
+                <tr><td><code>success</code></td><td>Successful operation</td></tr>
+                <tr><td><code>warning</code></td><td>Warnings</td></tr>
+                <tr><td><code>error</code></td><td>Errors</td></tr>
+                <tr><td><code>step</code></td><td>Cleaning steps</td></tr>
+                <tr><td><code>system</code></td><td>System messages</td></tr>
+                <tr><td><code>detail</code></td><td>Technical details</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- HOW TO RUN -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>🚀 How to Run</h2>
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Windows 10 or 11</li>
+            <li>Python 3.10 or higher</li>
+            <li>Pip installed</li>
+        </ul>
+
+        <h3>Installing Dependencies</h3>
+        <pre><code>pip install PyQt5 qtawesome</code></pre>
+
+        <h3>Running the Application</h3>
+        <pre><code>python main.py</code></pre>
+
+        <p>The application will automatically request administrator privileges when necessary.</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- COMPILATION -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>🏗️ Building the Executable</h2>
+        <p>To generate the executable, use:</p>
+        <pre><code>pip install pyinstaller
+pyinstaller CLEANCROW.spec</code></pre>
+        <p>The executable will be generated at <code>dist/CLEANCROW.exe</code>.</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- KNOWN LIMITATIONS -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>⚠️ Known Limitations</h2>
+        <ul>
+            <li>Windows only.</li>
+            <li>Depends on native tools (e.g., <code>winget</code>).</li>
+            <li>Does not perform Windows registry cleaning.</li>
+            <li>Does not offer a rollback system for executed actions.</li>
+            <li>Some files may remain locked and will be removed on the next reboot.</li>
+            <li>Browsers are closed to allow cache cleaning.</li>
+            <li>Windows Update can only be cleaned if the service is stopped.</li>
+        </ul>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- LICENSE -->
+    <!-- ============================================ -->
+    <div class="card">
+        <h2>📄 License</h2>
+        <p>Distributed under the <strong>GNU GPL v3.0</strong> license. See the <code>LICENSE</code> file for more details.</p>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer>
+        <p>© 2026 Eduardo S Ferreira - CleanCrow | Licensed under GNU GPL v3.0</p>
+        <p>GitHub: <a href="https://github.com/EduardoDosSantosFerreira/CleanCrow">EduardoDosSantosFerreira/CleanCrow</a></p>
+    </footer>
+</body>
+</html>

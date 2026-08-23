@@ -1,1 +1,1 @@
-pyinstaller --onefile --noconsole --clean --name CLEANCROW --icon crowico.ico --collect-all qtawesome --upx-dir "H:\projetos\cleancrow-legacy\upx-5.1.0-win64" main.py
+pyinstaller CLEANCROW.spec --clean --upx-dir "D:\projetos\cleancrow-legacy\upx-5.1.0-win64"

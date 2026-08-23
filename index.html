@@ -9,6 +9,7 @@
   <meta name="keywords"
     content="CleanCrow, Windows, cleaning, optimization, winget, defragmentation, update, system optimizer">
   <meta name="author" content="Eduardo S Ferreira">
+  <meta name="theme-color" content="#e63946">
   <title>CleanCrow - Advanced Windows Cleaning & Optimization</title>
   <link rel="icon" type="image/png" href="./src/assets/img/profile_icons/crowico.png">
 
@@ -51,6 +52,11 @@
           <li class="nav-item">
             <a class="nav-link" href="#screenshots">Screenshots</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./doc/doc.html" target="_blank" rel="noopener">
+              Docs
+            </a>
+          </li>
           <li class="nav-item ml-lg-3">
             <a class="nav-link btn btn-download text-white" href="dist/cleancrow.exe">
               <i class="fas fa-download mr-2"></i>Download
@@ -84,7 +90,7 @@
           </div>
           <div class="hero-stats mt-4">
             <div class="stat-item">
-              <span class="stat-number">10K+</span>
+              <span class="stat-number">11.3K+</span>
               <span class="stat-label">Downloads</span>
             </div>
             <div class="stat-item">
@@ -457,6 +463,7 @@
             <li><a href="#security">Security</a></li>
             <li><a href="#how-to-use">How to Use</a></li>
             <li><a href="#screenshots">Screenshots</a></li>
+            <li><a href="doc.html" target="_blank" rel="noopener">Documentation</a></li>
             <li><a href="dist/cleancrow.exe" download>Download</a></li>
           </ul>
         </div>
@@ -464,7 +471,7 @@
         <div class="col-md-3 mb-5">
           <h5>Resources</h5>
           <ul class="footer-links">
-            <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/wiki" target="_blank" rel="noopener">Documentation</a></li>
+            <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/wiki" target="_blank" rel="noopener">Wiki</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/releases" target="_blank" rel="noopener">Changelog</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow/projects" target="_blank" rel="noopener">Roadmap</a></li>
             <li><a href="https://github.com/EduardoDosSantosFerreira/CleanCrow" target="_blank" rel="noopener">GitHub</a></li>
@@ -527,6 +534,17 @@
         500,
         'linear'
       );
+    });
+
+    // Smooth scroll para âncoras do próprio site
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      });
     });
   </script>
 </body>

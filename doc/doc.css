@@ -1,0 +1,421 @@
+/* ============================================
+   CLEANCROW - DOCUMENTATION STYLESHEET
+   Baseado no style.css principal
+   ============================================ */
+
+/* CSS Variables */
+:root {
+  --primary-color: #000000;
+  --secondary-color: #1a1a1a;
+  --accent-color: #e63946;
+  --accent-dark: #c1121f;
+  --accent-light: #ff6b6b;
+  --text-color: #f1faee;
+  --muted-color: #a8dadc;
+  --gray-dark: #222222;
+  --gray-medium: #333333;
+  --gray-light: #444444;
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+}
+
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  line-height: 1.7;
+  color: var(--text-color);
+  background-color: var(--primary-color);
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-dark);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 5px;
+  transition: var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dark);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-color);
+  color: var(--text-color);
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+h1 {
+  font-size: 2.8rem;
+  text-align: center;
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+h1::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-color), var(--accent-light));
+  border-radius: 3px;
+}
+
+h2 {
+  font-size: 2rem;
+  color: var(--accent-color);
+  margin-top: 50px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(230, 57, 70, 0.3);
+  padding-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.4rem;
+  color: var(--text-color);
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+p, li {
+  font-size: 1.05rem;
+  color: var(--muted-color);
+  text-align: justify;
+  margin-bottom: 15px;
+}
+
+strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+a:hover {
+  color: var(--accent-light);
+  text-decoration: underline;
+}
+
+/* ============================================
+   CODE & PRE
+   ============================================ */
+code {
+  background-color: var(--gray-dark);
+  color: var(--accent-light);
+  padding: 3px 8px;
+  border-radius: var(--border-radius-sm);
+  font-family: "Consolas", monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: var(--gray-dark);
+  padding: 15px;
+  border-radius: var(--border-radius-md);
+  overflow-x: auto;
+  border-left: 4px solid var(--accent-color);
+  margin-bottom: 20px;
+}
+
+pre code {
+  background: none;
+  color: var(--text-color);
+  padding: 0;
+  font-size: 0.95em;
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-medium);
+}
+
+th {
+  background-color: var(--accent-color);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+}
+
+tr:hover {
+  background-color: rgba(230, 57, 70, 0.05);
+}
+
+td {
+  color: var(--muted-color);
+}
+
+/* ============================================
+   CARDS & BOXES
+   ============================================ */
+.card {
+  background-color: var(--secondary-color);
+  padding: 25px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  margin-bottom: 25px;
+  border-left: 4px solid var(--accent-color);
+  transition: var(--transition-normal);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(230, 57, 70, 0.2);
+}
+
+/* ============================================
+   FLAGS / BADGES
+   ============================================ */
+.flag {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 2px;
+}
+
+.seguro {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.avancado {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.especial {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.admin {
+  background-color: var(--info-color);
+  color: white;
+}
+
+/* ============================================
+   LISTAS
+   ============================================ */
+ul, ol {
+  padding-left: 25px;
+  margin-bottom: 20px;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+ul li::marker {
+  color: var(--accent-color);
+}
+
+/* ============================================
+   BLOCKQUOTE
+   ============================================ */
+blockquote {
+  background-color: rgba(230, 57, 70, 0.1);
+  border-left: 4px solid var(--accent-color);
+  padding: 15px 20px;
+  border-radius: var(--border-radius-sm);
+  margin: 20px 0;
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0;
+  color: var(--text-color);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+footer {
+  text-align: center;
+  margin-top: 60px;
+  padding: 30px;
+  background-color: var(--primary-color);
+  border-top: 1px solid rgba(230, 57, 70, 0.3);
+  color: var(--muted-color);
+  font-size: 0.9rem;
+}
+
+footer a {
+  color: var(--accent-color);
+}
+
+footer a:hover {
+  color: var(--accent-light);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  body {
+    padding: 20px 15px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.7rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  p, li {
+    font-size: 1rem;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+/* ============================================
+   NAVBAR SIMPLES
+   ============================================ */
+.navbar-simple {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(230, 57, 70, 0.3);
+  padding: 10px 0;
+}
+
+.navbar-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent-color);
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.navbar-logo {
+  height: 30px;
+  margin-right: 10px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 15px;
+}
+
+.navbar-link {
+  text-decoration: none;
+  color: var(--muted-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: var(--transition-normal);
+  padding: 5px 10px;
+  border-radius: var(--border-radius-sm);
+}
+
+.navbar-link:hover {
+  color: var(--accent-color);
+  background-color: rgba(230, 57, 70, 0.1);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .navbar-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
